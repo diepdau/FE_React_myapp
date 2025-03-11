@@ -52,10 +52,13 @@ const Register = () => {
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
-      console.error("Registration failed:", error.response);
-      var err = error.response?.data;
-      for(let i=0;i<err.length ;i++){  
-        toast.error(err[i].description)}
+      console.error("Registration failed:", error?.response);
+      if(!error.response)toast.error("Registration failed. Please try again.");
+      else{
+        var err = error.response?.data;
+        for(let i=0;i<err.length ;i++){  
+          toast.error(err[i].description)}
+      }
     },
   });
   const {
