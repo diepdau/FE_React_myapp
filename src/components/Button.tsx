@@ -9,7 +9,7 @@ type LoadingButtonProps = {
   children: React.ReactNode;
 };
 
-export const LoadingButton: React.FC<LoadingButtonProps> = ({
+export const Button: React.FC<LoadingButtonProps> = ({
   textColor = "text-white",
   btnColor = "bg-black",
   children,
@@ -17,10 +17,9 @@ export const LoadingButton: React.FC<LoadingButtonProps> = ({
 }) => {
   return (
     <button
-      style={{ width: `width1` }}
       type="submit"
       className={twMerge(
-        `border border-[#ffffff] w-full p-3 mt-6 rounded-[100px]  transition`,
+        `border border-[#ffffff] w-[190px] p-3 mt-6 rounded-[100px]  transition`,
         `${btnColor} ${loading && "bg-[#000000]"}`
       )}
     >
