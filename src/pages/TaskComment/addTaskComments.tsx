@@ -10,7 +10,7 @@ import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
 import { TaskComments } from "../../api/types";
 import { z } from "zod";
-import { Button } from "../../components/Button";
+// import { Button } from "../../components/ButtonDialog";
 const taskCommentsSchema = object({
   content: string(),
   //  createdAt: z.date().optional(),
@@ -71,7 +71,7 @@ const AddTaskComment = () => {
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmitHandler)} className="form ">
           <InputField label="Content" name="content" />
-          <Button loading={store.requestLoading}>Add Task</Button>
+          {/* <Button loading={store.requestLoading}>Add Task</Button> */}
         </form>
       </FormProvider>
     </div>

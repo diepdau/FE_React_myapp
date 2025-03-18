@@ -14,7 +14,7 @@ export interface IUserResponse {
 export type TaskStore = {
   tasks: Array<Task>;
   getTasks: () => Promise<void>;
-  getTaskById: (id: number) => Promise<void>;
+  getTaskById: (id: number) => Promise<Task>;
   createTask: (value: TaskCreate) => Promise<void>;
   updateTask: (value: Task) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
@@ -30,6 +30,7 @@ export type Task = {
   isCompleted: boolean;
 };
 export type TaskCreate = {
+   id?: number;
   title: string;
   description: string;
   userId: number;
@@ -47,7 +48,7 @@ export type TaskComments = {
 };
 export type TaskCommentsStore = {
   taskComments: Array<TaskComments>;
-  getTaskCommentsByTaskId: (id: number) => Promise<void>;
+  getTaskCommentsByTaskId: (id: number) => Promise<TaskComments>;
   createTaskComments: (value: TaskComments) => Promise<void>;
   deleteTaskComments: (id: number) => Promise<void>;
 };
@@ -91,4 +92,16 @@ export type TaskAttachmentsStore = {
   getTaskAttachmentsByTaskId: (id: number) => Promise<void>;
   createTaskAttachments: (id: number, files: File[]) => Promise<void>;
   deleteTaskAttachments: (id: number) => Promise<void>;
+};
+
+
+//clabels
+export type Label = {
+  id: number;
+  name: string;
+};
+
+export type LabelsStore = {
+  labels: Array<Label>;
+  getLabels: () => Promise<void>;
 };

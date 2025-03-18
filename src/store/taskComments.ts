@@ -10,8 +10,7 @@ export const useTaskCommentsStore = create<TaskCommentsStore>()((set) => ({
   taskComments: [],
   getTaskCommentsByTaskId: async (id: number) => {
     const taskComments = await getTaskCommentsByTaskId(id);
-    console.log("taskCommentsby taskId", taskComments);
-    return set((state) => ({ ...state, taskComments }));
+    return taskComments;
   },
   createTaskComments: async (newProduct: TaskComments) => {
     const t = await createTaskComments(newProduct);

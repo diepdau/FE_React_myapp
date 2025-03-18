@@ -4,13 +4,13 @@ export async function getTasks(): Promise<Array<Task>> {
   const response = await apiClient.get("tasks");
   return response.data;
 }
-export async function getTaskById(id: number): Promise<Array<Task>> {
+export async function getTaskById(id: number): Promise<Task> {
   const response = await apiClient.get(`tasks/${id}`);
   return response.data;
-}
+} 
 export async function createTasks(
   task: TaskCreate
-): Promise<Array<TaskCreate>> {
+): Promise<Array<Task>> {
   const response = await apiClient.post("tasks", task);
   return response.data;
 }

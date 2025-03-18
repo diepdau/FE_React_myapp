@@ -9,13 +9,15 @@ import AddTaskComment from "./addTaskComments";
 import { Dialog, DialogActions, DialogTitle } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 
-const TaskComments = () => {
+const TaskComments = ({ taskId }: { taskId: number }) => {
+  if (!taskId) {taskId=0}; 
   const { taskComments, getTaskCommentsByTaskId, deleteTaskComments } =
     useTaskCommentsStore();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   useEffect(() => {
-    getTaskCommentsByTaskId(2);
-  }, []);
+    getTaskCommentsByTaskId(taskId);
+  }, [taskId]);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const handleDelete = async () => {
     if (selectedRows.length === 0) {

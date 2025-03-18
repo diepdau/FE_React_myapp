@@ -7,7 +7,7 @@ export async function getTaskComments(): Promise<Array<TaskComments>> {
 }
 export async function getTaskCommentsByTaskId(
   id: number
-): Promise<Array<TaskComments>> {
+): Promise<TaskComments> {
   const response = await apiClient.get(`task-comments/task/${id}`);
   return response.data;
 }

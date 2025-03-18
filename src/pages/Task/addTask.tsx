@@ -1,36 +1,42 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTaskStore } from "../../store/task";
 import { useCategoryStore } from "../../store/category";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { object, string, number, boolean } from "zod";
+import { object, string, number, boolean, array } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import useStore from "../../store";
 import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
 import { TaskCreate } from "../../api/types";
-import { Button } from "../../components/Button";
 import Select from "react-select";
+import { useLabelsStore } from "../../store/labels";
+import { useTaskLabelsStore } from "../../store/taskLabels";
+import { ButtonDialog } from "../../components/ButtonDialog";
 
 const taskSchema = object({
   title: string().min(1, "Title is required"),
   description: string().min(1, "Description is required"),
   categoryId: number().min(1, "Category is required"),
   isCompleted: boolean().default(false).optional(),
-  // createdAt: z.date().optional(),
+  // labels: array(number()).min(1, "At least one label is required"),
 });
 
 export type TaskInput = TypeOf<typeof taskSchema>;
 
-const AddTask = () => {
+const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
   const { getTasks, createTask } = useTaskStore();
   const user = useStore();
-  const { categories, getCategories } = useCategoryStore();
   const store = useStore();
+  const { categories, getCategories } = useCategoryStore();
+  const { createTaskLabels } = useTaskLabelsStore();
+  const { labels, getLabels } = useLabelsStore();
+  const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
 
   useEffect(() => {
     getCategories();
+    getLabels();
   }, []);
 
   const methods = useForm<TaskInput>({
@@ -40,9 +46,10 @@ const AddTask = () => {
   const mutation = useMutation({
     mutationFn: createTask,
     onMutate: () => store.setRequestLoading(true),
-    onSuccess: () => {
+    onSuccess: async () => {
       store.setRequestLoading(false);
       toast.success("Task created successfully");
+      handleCloseDialog(); 
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
@@ -53,13 +60,14 @@ const AddTask = () => {
   const {
     reset,
     handleSubmit,
-    formState: { isSubmitSuccessful },
+    formState: { isSubmitSuccessful, errors },
     setValue,
   } = methods;
 
   useEffect(() => {
     if (isSubmitSuccessful) {
       reset();
+      setSelectedLabels([]);
     }
   }, [isSubmitSuccessful]);
 
@@ -82,11 +90,10 @@ const AddTask = () => {
       </h3>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-5">
-          <InputField label="Title" name="title" />
-          <InputField label="Description" name="description" />
+          <InputField label="Title" name="title" add={true} />
+          <InputField label="Description" name="description" textarea={true} />
 
           <label className="block font-medium text-gray-700">Category</label>
-          {/* Chua thong bao phai chon */}
           <Select
             options={categories.map((cat) => ({
               value: cat.id,
@@ -95,17 +102,50 @@ const AddTask = () => {
             onChange={(selectedOption) => {
               setValue("categoryId", selectedOption?.value || 0);
             }}
-            className="basic-single"
+            className="basic-single rounded-full"
             classNamePrefix="select"
             placeholder="Select Category"
           />
+          {errors.categoryId && (
+            <p className="text-red-500 text-sm">{errors.categoryId.message}</p>
+          )}
+
+          {/* <label className="block font-medium text-gray-700">Labels</label> */}
+          {/* <Select
+            isMulti
+            options={labels.map((label) => ({
+              value: label.id,
+              label: label.name,
+            }))}
+            onChange={(selectedOptions) => {
+              setSelectedLabels(selectedOptions.map((option: { value: number }) => option.value));
+            }}
+            className="basic-multi-select rounded-full"
+            classNamePrefix="select"
+            placeholder="Select Labels"
+          />
+          {errors.labels && (
+            <p className="text-red-500 text-sm">{errors.labels.message}</p>
+          )} */}
+
           <div className="flex items-center justify-between">
             <label>
               <input type="checkbox" {...methods.register("isCompleted")} />
               Completed
             </label>
-            <Button loading={store.requestLoading}>Add Task</Button>
           </div>
+
+          <div className="flex justify-end space-x-3 mt-5">
+  <ButtonDialog
+    loading={false}  
+    btnColor="bg-blue-600 hover:bg-blue-700"
+    showCancel={true}
+    onCancel={handleCloseDialog}
+    onClick={handleSubmit(onSubmitHandler)}
+  >
+    Add Task
+  </ButtonDialog>
+</div>
         </form>
       </FormProvider>
     </div>

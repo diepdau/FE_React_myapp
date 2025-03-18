@@ -6,6 +6,8 @@ type FormInputProps = {
   name: string;
   type?: string;
   placeholder?: string;
+  textarea?: boolean;
+  add?: boolean; // Nếu add = true, bo góc nhỏ hơn và chiều cao nhỏ hơn
 };
 
 const InputField: React.FC<FormInputProps> = ({
@@ -13,20 +15,35 @@ const InputField: React.FC<FormInputProps> = ({
   name,
   type = "text",
   placeholder = "",
+  textarea = false,
+  add = false,
 }) => {
   const {
     register,
     formState: { errors },
   } = useFormContext();
+
   return (
     <div className="mb-4">
       <span className="text-left text-[#0C1421] mb-2">{label}</span>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="input w-full p-3 border border-[#D4D7E3] min-w-8 rounded-[100px] text-black bg-white"
-        {...register(name)}
-      />
+      {textarea ? (
+        <textarea
+          placeholder={placeholder}
+          className={`input w-full p-3 border border-[#D4D7E3] min-w-8 text-black bg-white resize-none ${
+            add ? "rounded-xl h-24" : "rounded-xl h-32"
+          }`}
+          {...register(name)}
+        />
+      ) : (
+        <input
+          type={type}
+          placeholder={placeholder}
+          className={`input w-full p-3 border border-[#D4D7E3] min-w-8 text-black bg-white ${
+            add ? "rounded-xl h-10" : "rounded-full h-12"
+          }`}
+          {...register(name)}
+        />
+      )}
       {errors[name] && (
         <span className="text-red-500">{errors[name]?.message as string}</span>
       )}

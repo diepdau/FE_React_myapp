@@ -6,7 +6,7 @@ import { z } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import useStore from "../../store";
-import { Button } from "../../components/Button";
+import {  ButtonDialog } from "../../components/ButtonDialog";
 
 const taskAttachmentSchema = z.object({
   files: z
@@ -91,7 +91,7 @@ const AddTaskAttachment = () => {
       <FormProvider {...methods}>
         <form onSubmit={onSubmitHandler} className="form">
           <input type="file" multiple onChange={handleFileChange} />
-          <Button loading={store.requestLoading}>Upload Files</Button>
+          <ButtonDialog loading={store.requestLoading}>Upload Files</ButtonDialog>
         </form>
       </FormProvider>
     </div>
@@ -99,3 +99,43 @@ const AddTaskAttachment = () => {
 };
 
 export default AddTaskAttachment;
+// public async Task<IActionResult> UploadAttachments(int taskId, List<IFormFile> files)
+// {
+//     if (files == null || files.Count == 0)
+//     {
+//         return BadRequest("No files uploaded.");
+//     }
+
+//     List<TaskAttachment> attachments = new List<TaskAttachment>();
+
+//     foreach (var file in files)
+//     {
+//         string fileUrl = await _blobService.UploadFileAsync(file);
+
+//         var attachment = new TaskAttachment
+//         {
+//             TaskId = taskId,
+//          nhận cái này thì là cái gì
+// cần sửa thành gì export async function createTaskAttachments(
+//  id: number,
+//  files: File[]
+// ): Promise<Array<TaskAttachments>> {
+//  const formData = new FormData();
+//  for (const file of files) {
+//    formData.append("files", file);
+//  }
+//  const response = await apiClient.post(task-attachments/${id}, formData);
+//  return response.data;
+// }
+// export type TaskAttachmentsStore = {
+//  taskAttachments: Array<TaskAttachments>;
+//  getTaskAttachmentsByTaskId: (id: number) => Promise<void>;
+//  createTaskAttachments: (id: number, files: File[]) => Promise<void>;
+//  deleteTaskAttachments: (id: number) => Promise<void>;
+// };  createTaskAttachments: async (id: number, files: File[]) => {
+//      const uploadedAttachments = await createTaskAttachments(id, files);
+//      return set((state) => ({
+//        ...state,
+//        taskAttachments: [...state.taskAttachments, ...uploadedAttachments],
+//      }));
+//    },
