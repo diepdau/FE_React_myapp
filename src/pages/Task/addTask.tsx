@@ -26,7 +26,7 @@ const taskSchema = object({
 export type TaskInput = TypeOf<typeof taskSchema>;
 
 const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
-  const { getTasks, createTask } = useTaskStore();
+  const { createTask } = useTaskStore();
   const user = useStore();
   const store = useStore();
   const { categories, getCategories } = useCategoryStore();
@@ -42,13 +42,27 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
   const methods = useForm<TaskInput>({
     resolver: zodResolver(taskSchema),
   });
-
   const mutation = useMutation({
     mutationFn: createTask,
     onMutate: () => store.setRequestLoading(true),
-    onSuccess: async () => {
+    onSuccess: async (task) => {
       store.setRequestLoading(false);
       toast.success("Task created successfully");
+      try {
+        console.log("tasklabel123", selectedLabels);
+        const taskLabelsData = selectedLabels.map((labelId) => ({
+          taskId: 2,
+          labelId,
+          labelName: labels.find((label) => label.id === labelId)?.name || "",
+        }));
+        for (const taskLabel of taskLabelsData) {
+          await createTaskLabels(taskLabel);
+          console.log("tasklabel", taskLabel);
+        }
+        toast.success("Task labels updated successfully");
+      } catch (error) {
+        toast.error("Failed to update task labels.");
+      }
       handleCloseDialog();
     },
     onError: (error: any) => {
@@ -78,18 +92,21 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
       description: values.description,
       userId: Number(user?.authUser?.id),
       categoryId: values.categoryId,
-      isCompleted: false,
+      isCompleted: values.isCompleted || false,
     };
     mutation.mutate(newTask);
   };
 
   return (
-    <div className="w-[460px] p-2">
+    <div className="w-[460px] max-w-full p-2">
       <h3 className="text-2xl font-semibold text-center mb-6">
         Create a New Task
       </h3>
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-5">
+        <form
+          onSubmit={handleSubmit(onSubmitHandler)}
+          className="form space-y-5"
+        >
           <InputField label="Title" name="title" add={true} />
           <InputField label="Description" name="description" textarea={true} />
 
@@ -109,25 +126,25 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
           {errors.categoryId && (
             <p className="text-red-500 text-sm">{errors.categoryId.message}</p>
           )}
-
-          {/* <label className="block font-medium text-gray-700">Labels</label> */}
-          {/* <Select
+          <label className="block font-medium text-gray-700">Labels</label>
+          <Select
             isMulti
             options={labels.map((label) => ({
               value: label.id,
               label: label.name,
             }))}
             onChange={(selectedOptions) => {
-              setSelectedLabels(selectedOptions.map((option: { value: number }) => option.value));
+              setSelectedLabels(
+                selectedOptions.map((option: { value: number }) => option.value)
+              );
             }}
             className="basic-multi-select rounded-full"
             classNamePrefix="select"
             placeholder="Select Labels"
           />
-          {errors.labels && (
+          {/* {errors.labels && (
             <p className="text-red-500 text-sm">{errors.labels.message}</p>
           )} */}
-
           <div className="flex items-center justify-between">
             <label>
               <input type="checkbox" {...methods.register("isCompleted")} />{" "}

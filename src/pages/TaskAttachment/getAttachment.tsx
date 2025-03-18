@@ -9,7 +9,8 @@ import { useTaskAttachmentsStore } from "../../store/taskAttachments";
 import AddTaskAttachment from "./addTaskAttachment";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
-
+import DownloadIcon from "@mui/icons-material/Download";
+import { downloadFileTaskAttachments } from "../../api/task-attachment";
 const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const { taskAttachments, getTaskAttachmentsByTaskId, deleteTaskAttachments } =
     useTaskAttachmentsStore();
@@ -43,14 +44,22 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       field: "actions",
       type: "actions",
       headerName: "Actions",
-      width: 100,
+      width: 180,
       cellClassName: "actions",
-      getActions: ({ id }) => [
+      getActions: ({ id, row }) => [
         <GridActionsCellItem
           icon={<DeleteIcon />}
           label="Delete"
           onClick={() => {
             setDeleteDialogOpen(true);
+          }}
+          color="inherit"
+        />,
+        <GridActionsCellItem
+          icon={<DownloadIcon />}
+          label="Download"
+          onClick={() => {
+            downloadFileTaskAttachments(row.fileName);
           }}
           color="inherit"
         />,

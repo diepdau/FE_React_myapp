@@ -25,6 +25,23 @@ export async function createTaskAttachments(
 export async function deleteTaskAttachments(
   id: any
 ): Promise<Array<TaskAttachments>> {
-  const response = await apiClient.delete(`task-attachments/${id}`);
+  const response = await apiClient.get(`task-attachments/${id}`);
   return response.data;
+}
+export async function downloadFileTaskAttachments(
+  nameFile: string
+): Promise<void> {
+  const response = await apiClient.get(
+    `task-attachments/DownloadFile/${nameFile}`,
+    {
+      responseType: "blob",
+    }
+  );
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", nameFile);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }

@@ -7,8 +7,6 @@ import {
   GridActionsCellItem,
   GridRowParams,
 } from "@mui/x-data-grid";
-import Snackbar from "@mui/material/Snackbar";
-import Alert, { AlertProps } from "@mui/material/Alert";
 import dayjs from "dayjs";
 import { useTaskStore } from "../../store/task";
 import { useCategoryStore } from "../../store/category";
@@ -31,10 +29,6 @@ export default function TaskList() {
   const { createTaskLabels } = useTaskLabelsStore();
   const { labels, getLabels } = useLabelsStore();
   const [selectedLabels, setSelectedLabels] = React.useState<number[]>([]);
-  const [snackbar, setSnackbar] = React.useState<Pick<
-    AlertProps,
-    "children" | "severity"
-  > | null>(null);
   const navigate = useNavigate();
 
   const handleRowDoubleClick = (params: GridRowParams) => {
@@ -60,7 +54,7 @@ export default function TaskList() {
         };
 
         await updateTask(updatedTask);
-        console.log(selectedLabels);
+        console.log("selectedlables", selectedLabels);
         const newTaskLabels = selectedLabels.map((labelId) => ({
           taskId: newRow.id,
           labelId,
@@ -78,10 +72,6 @@ export default function TaskList() {
     },
     [updateTask, selectedLabels, createTaskLabels, labels]
   );
-
-  const handleProcessRowUpdateError = React.useCallback((error: Error) => {
-    setSnackbar({ children: error.message, severity: "error" });
-  }, []);
 
   const handleDeleteConfirm = async () => {
     if (selectedRow !== null) {
@@ -161,7 +151,7 @@ export default function TaskList() {
     {
       field: "labels",
       headerName: "Labels",
-      width: 200,
+      width: 250,
       editable: true,
       renderEditCell: (params) => (
         <SelectReact
@@ -170,14 +160,15 @@ export default function TaskList() {
             value: label.id,
             label: label.name,
           }))}
-          value={params.value}
           onChange={(selectedOptions) => {
             setSelectedLabels(
               selectedOptions.map((option: { value: number }) => option.value)
             );
           }}
-          className="basic-multi-select rounded-full"
+          className="basic-multi-select"
           classNamePrefix="select"
+          menuPortalTarget={document.body}
+          menuPosition="fixed"
           placeholder="Select Labels"
         />
       ),
@@ -219,19 +210,8 @@ export default function TaskList() {
         columns={columns}
         checkboxSelection
         processRowUpdate={processRowUpdate}
-        // onRowDoubleClick={handleRowDoubleClick}
-        onProcessRowUpdateError={handleProcessRowUpdateError}
+        onRowDoubleClick={handleRowDoubleClick}
       />
-      {!!snackbar && (
-        <Snackbar
-          open
-          autoHideDuration={6000}
-          onClose={() => setSnackbar(null)}
-        >
-          <Alert {...snackbar} onClose={() => setSnackbar(null)} />
-        </Snackbar>
-      )}
-
       <ConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

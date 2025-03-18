@@ -3,6 +3,7 @@ import { TaskAttachmentsStore } from "../api/types";
 import {
   createTaskAttachments,
   deleteTaskAttachments,
+  downloadFileTaskAttachments,
   getTaskAttachmentsByTaskId,
 } from "../api/task-attachment";
 
@@ -25,6 +26,12 @@ export const useTaskAttachmentsStore = create<TaskAttachmentsStore>()(
       return set((state) => ({
         ...state,
         products: state.taskAttachments.filter((t) => id !== t.taskId),
+      }));
+    },
+    downloadFileTaskAttachments: async (nameFile: string) => {
+      await downloadFileTaskAttachments(nameFile);
+      set((state: any) => ({
+        ...state,
       }));
     },
   })

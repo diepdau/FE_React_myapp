@@ -92,6 +92,7 @@ export type TaskAttachmentsStore = {
   getTaskAttachmentsByTaskId: (id: number) => Promise<void>;
   createTaskAttachments: (id: number, files: File[]) => Promise<void>;
   deleteTaskAttachments: (id: number) => Promise<void>;
+  downloadFileTaskAttachments: (nameFile: string) => Promise<void>;
 };
 
 //labels
