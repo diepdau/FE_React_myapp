@@ -6,20 +6,19 @@ import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import AddTaskComment from "./addTaskComments";
-import { Dialog, DialogActions, DialogTitle } from "@mui/material";
+import { Dialog, DialogContent } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
-const TaskComments = ({ taskId }: { taskId: number }) => {
-  if (!taskId) {taskId=0}; 
+const TaskCommentList = ({ taskId }: { taskId: number }) => {
   const { taskComments, getTaskCommentsByTaskId, deleteTaskComments } =
     useTaskCommentsStore();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   useEffect(() => {
     getTaskCommentsByTaskId(taskId);
   }, [taskId]);
-
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const handleDelete = async () => {
+  const handleDeleteConfirm = async () => {
     if (selectedRows.length === 0) {
       toast.warning("Please select at least one task comment to delete.");
       return;
@@ -28,21 +27,21 @@ const TaskComments = ({ taskId }: { taskId: number }) => {
       await Promise.all(selectedRows.map((id) => deleteTaskComments(id)));
       toast.success("Task comment deleted successfully!");
       setSelectedRows([]);
+      setDeleteDialogOpen(false);
     } catch (error) {
       console.log(error);
       toast.error("Failed to delete task comment.");
     }
   };
-  const [open, setOpen] = React.useState(false);
-  const handleClickOpen = () => {
-    setOpen(true);
+  const [openDialog, setOpenDialog] = React.useState(false);
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
   };
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
   };
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 70 },
-    { field: "taskId", headerName: "taskId", width: 130, editable: true },
     {
       field: "userName",
       headerName: "userName",
@@ -52,7 +51,7 @@ const TaskComments = ({ taskId }: { taskId: number }) => {
     {
       field: "content",
       headerName: "Content",
-      width: 130,
+      width: 330,
       editable: true,
     },
     {
@@ -75,7 +74,6 @@ const TaskComments = ({ taskId }: { taskId: number }) => {
             icon={<DeleteIcon />}
             label="Delete"
             onClick={() => setDeleteDialogOpen(true)}
-            disabled={selectedRows.length === 0}
             color="inherit"
           />,
         ];
@@ -85,40 +83,26 @@ const TaskComments = ({ taskId }: { taskId: number }) => {
 
   return (
     <>
-      <Paper sx={{ height: 800, width: "100%" }}>
-        <Button variant="outlined" onClick={handleClickOpen}>
-          Add TaskComment
+      <Paper sx={{ height: 400, width: "100%" }}>
+        <Button variant="outlined" onClick={handleOpenDialog}>
+          Add Task
         </Button>
-        <Dialog
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <AddTaskComment />
-          <DialogActions>
-            <Button autoFocus onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button>Add task</Button>
-          </DialogActions>
+
+        <Dialog open={openDialog} onClose={handleCloseDialog}>
+          <DialogContent>
+            <AddTaskComment
+              Id={taskId || 0}
+              handleCloseDialog={handleCloseDialog}
+            />
+          </DialogContent>
         </Dialog>
-        <Dialog
+
+        <ConfirmDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
-        >
-          <DialogTitle>
-            Are you sure you want to delete the selected labels?
-          </DialogTitle>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleDelete} color="error">
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onConfirm={handleDeleteConfirm}
+          title="Are you sure you want to delete this task?"
+        />
         <DataGrid
           editMode="row"
           rows={taskComments}
@@ -134,4 +118,4 @@ const TaskComments = ({ taskId }: { taskId: number }) => {
   );
 };
 
-export default TaskComments;
+export default TaskCommentList;

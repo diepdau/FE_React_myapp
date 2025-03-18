@@ -11,9 +11,6 @@ const Dashboard = () => {
       <div className="my-9 hover:text-orange-600">
         <Link to="/task-labels">Task Labels</Link>
       </div>
-      <div className="my-9 hover:text-orange-600">
-        <Link to="/task-comments">Task Comment</Link>
-      </div>
       <TaskList />
     </div>
   );

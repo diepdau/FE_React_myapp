@@ -6,7 +6,7 @@ import { z } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import useStore from "../../store";
-import {  ButtonDialog } from "../../components/ButtonDialog";
+import { ButtonDialog } from "../../components/ButtonDialog";
 
 const taskAttachmentSchema = z.object({
   files: z
@@ -16,54 +16,43 @@ const taskAttachmentSchema = z.object({
 
 type TaskAttachmentInput = z.infer<typeof taskAttachmentSchema>;
 
-const AddTaskAttachment = () => {
+const AddTaskAttachment = ({
+  handleCloseDialog,
+}: {
+  handleCloseDialog: () => void;
+}) => {
   const { createTaskAttachments, getTaskAttachmentsByTaskId } =
     useTaskAttachmentsStore();
   const store = useStore();
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [taskId] = useState(2);
-
-  const methods = useForm<TaskAttachmentInput>({
-    resolver: zodResolver(taskAttachmentSchema),
-  });
+  // const methods = useForm<TaskAttachmentInput>({
+  //   resolver: zodResolver(taskAttachmentSchema),
+  // });
 
   useEffect(() => {
     getTaskAttachmentsByTaskId(taskId);
   }, [taskId, getTaskAttachmentsByTaskId]);
 
-  const mappedAttachments: {
-    id: number;
-    taskId: number;
-    FileName: string;
-    FileUrl: string;
-  }[] = [
-    {
-      id: 1,
-      taskId: 2,
-      FileName: "example.txt",
-      FileUrl:
-        "https://miro.medium.com/v2/resize:fit:720/format:webp/1*dk4PZkdTrKuzbL7EAmQe-g.png",
-    },
-  ];
+  const methods = useForm();
+  const { handleSubmit } = methods;
+  const [files, setFiles] = useState<File[]>([]);
 
-  const files: File[] = mappedAttachments.map((attachment) => {
-    return new File(
-      [
-        /* file data here */
-      ],
-      attachment.FileName,
-      { type: "application/octet-stream" }
-    );
-  });
+  const onSubmitHandler = (data: any) => {
+    createTaskAttachmentsMutation.mutate();
+  };
 
-  const mutation = useMutation({
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFiles(Array.from(event.target.files));
+    }
+  };
+
+  const createTaskAttachmentsMutation = useMutation({
     mutationFn: async () => createTaskAttachments(taskId, files),
     onMutate: () => store.setRequestLoading(true),
     onSuccess: () => {
       store.setRequestLoading(false);
       toast.success("Attachments uploaded successfully!");
-      // setSelectedFiles([]);
-      // getTaskAttachmentsByTaskId(taskId);
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
@@ -71,27 +60,25 @@ const AddTaskAttachment = () => {
     },
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFiles(Array.from(event.target.files));
-    }
-  };
-
-  const onSubmitHandler = () => {
-    if (selectedFiles.length === 0) {
-      toast.warning("Please select at least one file.");
-      return;
-    }
-    mutation.mutate();
-  };
-
   return (
-    <div className="p-3 rounded-[20px] shadow-lg w-[450px] max-w-full">
-      <h3>Upload Task Attachments</h3>
+    <div className="w-[460px] p-2">
+      <h3 className="text-2xl font-semibold text-center mb-6">
+        Upload Task Attachments
+      </h3>
       <FormProvider {...methods}>
-        <form onSubmit={onSubmitHandler} className="form">
+        <form onSubmit={handleSubmit(onSubmitHandler)} className="form">
           <input type="file" multiple onChange={handleFileChange} />
-          <ButtonDialog loading={store.requestLoading}>Upload Files</ButtonDialog>
+          <div className="flex justify-end space-x-3 mt-5">
+            <ButtonDialog
+              loading={false}
+              btnColor="bg-[#000000] hover:border-gray-700"
+              showCancel={true}
+              onCancel={handleCloseDialog}
+              onClick={handleSubmit(onSubmitHandler)}
+            >
+              Upload file
+            </ButtonDialog>
+          </div>
         </form>
       </FormProvider>
     </div>
@@ -99,43 +86,3 @@ const AddTaskAttachment = () => {
 };
 
 export default AddTaskAttachment;
-// public async Task<IActionResult> UploadAttachments(int taskId, List<IFormFile> files)
-// {
-//     if (files == null || files.Count == 0)
-//     {
-//         return BadRequest("No files uploaded.");
-//     }
-
-//     List<TaskAttachment> attachments = new List<TaskAttachment>();
-
-//     foreach (var file in files)
-//     {
-//         string fileUrl = await _blobService.UploadFileAsync(file);
-
-//         var attachment = new TaskAttachment
-//         {
-//             TaskId = taskId,
-//          nhận cái này thì là cái gì
-// cần sửa thành gì export async function createTaskAttachments(
-//  id: number,
-//  files: File[]
-// ): Promise<Array<TaskAttachments>> {
-//  const formData = new FormData();
-//  for (const file of files) {
-//    formData.append("files", file);
-//  }
-//  const response = await apiClient.post(task-attachments/${id}, formData);
-//  return response.data;
-// }
-// export type TaskAttachmentsStore = {
-//  taskAttachments: Array<TaskAttachments>;
-//  getTaskAttachmentsByTaskId: (id: number) => Promise<void>;
-//  createTaskAttachments: (id: number, files: File[]) => Promise<void>;
-//  deleteTaskAttachments: (id: number) => Promise<void>;
-// };  createTaskAttachments: async (id: number, files: File[]) => {
-//      const uploadedAttachments = await createTaskAttachments(id, files);
-//      return set((state) => ({
-//        ...state,
-//        taskAttachments: [...state.taskAttachments, ...uploadedAttachments],
-//      }));
-//    },

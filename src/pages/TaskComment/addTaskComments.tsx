@@ -2,26 +2,29 @@ import React, { useEffect } from "react";
 import { useTaskCommentsStore } from "../../store/taskComments";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { object, string, number } from "zod";
+import { object, string } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import useStore from "../../store";
 import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
 import { TaskComments } from "../../api/types";
-import { z } from "zod";
-// import { Button } from "../../components/ButtonDialog";
+import { ButtonDialog } from "../../components/ButtonDialog";
 const taskCommentsSchema = object({
-  content: string(),
+  content: string().min(1, { message: "Please enter an content task comment" }),
   //  createdAt: z.date().optional(),
 });
-// export type TaskInput = Omit<TypeOf<typeof taskSchema>, "userId">;
 export type TaskCommentInput = TypeOf<typeof taskCommentsSchema>;
-const AddTaskComment = () => {
+const AddTaskComment = ({
+  Id,
+  handleCloseDialog,
+}: {
+  Id: number;
+  handleCloseDialog: () => void;
+}) => {
   const { createTaskComments } = useTaskCommentsStore();
   const user = useStore();
   const store = useStore();
-
   const methods = useForm<TaskCommentInput>({
     resolver: zodResolver(taskCommentsSchema),
   });
@@ -31,6 +34,7 @@ const AddTaskComment = () => {
     onSuccess: () => {
       store.setRequestLoading(false);
       toast.success("Create task atachment successful");
+      handleCloseDialog();
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
@@ -58,7 +62,7 @@ const AddTaskComment = () => {
     console.log("taskattachment", values);
 
     const newTask: TaskComments = {
-      taskId: 2,
+      taskId: Id,
       userId: user.authUser?.id || 0,
       content: values.content,
     };
@@ -66,12 +70,24 @@ const AddTaskComment = () => {
   };
 
   return (
-    <div className="p-3 rounded-[20px] shadow-lg w-[450px] max-w-full">
-      <h3>Create a New Task</h3>
+    <div className="w-[460px] p-2">
+      <h3 className="text-2xl font-semibold text-center mb-6">
+        Create a Task comment
+      </h3>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmitHandler)} className="form ">
-          <InputField label="Content" name="content" />
-          {/* <Button loading={store.requestLoading}>Add Task</Button> */}
+          <InputField label="Content" name="content" textarea={true} />
+          <div className="flex justify-end space-x-3 mt-5">
+            <ButtonDialog
+              loading={false}
+              btnColor="bg-[#000000] hover:border-gray-700"
+              showCancel={true}
+              onCancel={handleCloseDialog}
+              onClick={handleSubmit(onSubmitHandler)}
+            >
+              Add
+            </ButtonDialog>
+          </div>
         </form>
       </FormProvider>
     </div>

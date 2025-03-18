@@ -7,7 +7,7 @@ type FormInputProps = {
   type?: string;
   placeholder?: string;
   textarea?: boolean;
-  add?: boolean; // Nếu add = true, bo góc nhỏ hơn và chiều cao nhỏ hơn
+  add?: boolean;
 };
 
 const InputField: React.FC<FormInputProps> = ({

@@ -1,6 +1,6 @@
 import React from "react";
 import { Dialog, DialogActions, DialogTitle, Button } from "@mui/material";
-
+import DeleteIcon from "@mui/icons-material/Delete";
 type ConfirmDialogProps = {
   open: boolean;
   onClose: () => void;
@@ -8,7 +8,12 @@ type ConfirmDialogProps = {
   title: string;
 };
 
-const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ open, onClose, onConfirm, title }) => {
+const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+  open,
+  onClose,
+  onConfirm,
+  title,
+}) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>

@@ -12,13 +12,16 @@ export async function createTaskAttachments(
   files: File[]
 ): Promise<Array<TaskAttachments>> {
   const formData = new FormData();
-  for (const file of files) {
+  files.forEach((file) => {
     formData.append("files", file);
-  }
-  const response = await apiClient.post(`task-attachments/${id}`, formData);
+  });
+  const response = await apiClient.post(`task-attachments/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 }
-
 export async function deleteTaskAttachments(
   id: any
 ): Promise<Array<TaskAttachments>> {

@@ -11,14 +11,6 @@ export interface IUserResponse {
     user: IUser;
   };
 }
-export type TaskStore = {
-  tasks: Array<Task>;
-  getTasks: () => Promise<void>;
-  getTaskById: (id: number) => Promise<Task>;
-  createTask: (value: TaskCreate) => Promise<void>;
-  updateTask: (value: Task) => Promise<void>;
-  deleteTask: (id: number) => Promise<void>;
-};
 
 //task
 export type Task = {
@@ -29,8 +21,16 @@ export type Task = {
   categoryId: number;
   isCompleted: boolean;
 };
+export type TaskStore = {
+  tasks: Array<Task>;
+  getTasks: () => Promise<void>;
+  getTaskById: (id: number) => Promise<Task>;
+  createTask: (value: TaskCreate) => Promise<void>;
+  updateTask: (value: Task) => Promise<void>;
+  deleteTask: (id: number) => Promise<void>;
+};
 export type TaskCreate = {
-   id?: number;
+  id?: number;
   title: string;
   description: string;
   userId: number;
@@ -48,7 +48,8 @@ export type TaskComments = {
 };
 export type TaskCommentsStore = {
   taskComments: Array<TaskComments>;
-  getTaskCommentsByTaskId: (id: number) => Promise<TaskComments>;
+  getTaskComments: () => Promise<void>;
+  getTaskCommentsByTaskId: (id: number) => Promise<void>;
   createTaskComments: (value: TaskComments) => Promise<void>;
   deleteTaskComments: (id: number) => Promise<void>;
 };
@@ -73,7 +74,6 @@ export type Category = {
   name: string;
   description: string;
 };
-
 export type CategoryStore = {
   categories: Array<Category>;
   getCategories: () => Promise<void>;
@@ -94,13 +94,11 @@ export type TaskAttachmentsStore = {
   deleteTaskAttachments: (id: number) => Promise<void>;
 };
 
-
-//clabels
+//labels
 export type Label = {
   id: number;
   name: string;
 };
-
 export type LabelsStore = {
   labels: Array<Label>;
   getLabels: () => Promise<void>;

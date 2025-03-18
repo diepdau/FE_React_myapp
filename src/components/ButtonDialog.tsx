@@ -7,9 +7,9 @@ type LoadingButtonProps = {
   btnColor?: string;
   textColor?: string;
   children: React.ReactNode;
-  onClick?: () => void; // Bấm nút chính
-  showCancel?: boolean; // Kiểm soát hiển thị nút Cancel
-  onCancel?: () => void; // Bấm nút Cancel
+  onClick?: () => void;
+  showCancel?: boolean;
+  onCancel?: () => void;
 };
 
 export const ButtonDialog: React.FC<LoadingButtonProps> = ({
@@ -23,7 +23,6 @@ export const ButtonDialog: React.FC<LoadingButtonProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-3 mt-6">
-      {/* Nút chính */}
       <button
         type="button"
         onClick={onClick}
@@ -45,7 +44,6 @@ export const ButtonDialog: React.FC<LoadingButtonProps> = ({
         )}
       </button>
 
-      {/* Nút Cancel (hiển thị nếu showCancel = true) */}
       {showCancel && (
         <button
           type="button"

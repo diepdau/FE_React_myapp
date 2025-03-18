@@ -11,7 +11,6 @@ export const useTaskLabelsStore = create<TaskLabelsStore>()((set) => ({
   taskLabels: [],
   getTaskLabels: async () => {
     const taskLabels = await getTaskLabels();
-    console.log("taskLabels", taskLabels);
     return set((state) => ({ ...state, taskLabels }));
   },
   getTaskLabelsByTaskId: async (id: number) => {

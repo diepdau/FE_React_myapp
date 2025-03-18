@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { TaskComments, TaskCommentsStore } from "../api/types";
 import {
+  getTaskComments,
   createTaskComments,
   deleteTaskComments,
   getTaskCommentsByTaskId,
@@ -8,9 +9,13 @@ import {
 
 export const useTaskCommentsStore = create<TaskCommentsStore>()((set) => ({
   taskComments: [],
+  getTaskComments: async () => {
+    const taskComments = await getTaskComments();
+    return set((state) => ({ ...state, taskComments }));
+  },
   getTaskCommentsByTaskId: async (id: number) => {
-    const taskComments = await getTaskCommentsByTaskId(id);
-    return taskComments;
+    const taskComments = await await getTaskCommentsByTaskId(id);
+    return set((state) => ({ ...state, taskComments }));
   },
   createTaskComments: async (newProduct: TaskComments) => {
     const t = await createTaskComments(newProduct);

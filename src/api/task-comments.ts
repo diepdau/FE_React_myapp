@@ -7,10 +7,11 @@ export async function getTaskComments(): Promise<Array<TaskComments>> {
 }
 export async function getTaskCommentsByTaskId(
   id: number
-): Promise<TaskComments> {
+): Promise<Array<TaskComments>> {
   const response = await apiClient.get(`task-comments/task/${id}`);
   return response.data;
 }
+
 export async function createTaskComments(
   taskComments: TaskComments
 ): Promise<Array<TaskComments>> {

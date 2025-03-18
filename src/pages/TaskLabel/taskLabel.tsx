@@ -22,7 +22,6 @@ const TaskLabels = () => {
   useEffect(() => {
     getTaskLabelsByTaskId(3);
   }, []);
-
   const rowsWithId = taskLabels.map((label, index) => ({
     id: index,
     ...label,

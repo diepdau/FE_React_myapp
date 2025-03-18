@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { TaskAttachments, TaskAttachmentsStore } from "../api/types";
+import { TaskAttachmentsStore } from "../api/types";
 import {
   createTaskAttachments,
   deleteTaskAttachments,

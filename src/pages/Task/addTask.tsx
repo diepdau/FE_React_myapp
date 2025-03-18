@@ -49,7 +49,7 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
     onSuccess: async () => {
       store.setRequestLoading(false);
       toast.success("Task created successfully");
-      handleCloseDialog(); 
+      handleCloseDialog();
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
@@ -84,7 +84,7 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
   };
 
   return (
-    <div className="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-md">
+    <div className="w-[460px] p-2">
       <h3 className="text-2xl font-semibold text-center mb-6">
         Create a New Task
       </h3>
@@ -130,22 +130,22 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
 
           <div className="flex items-center justify-between">
             <label>
-              <input type="checkbox" {...methods.register("isCompleted")} />
+              <input type="checkbox" {...methods.register("isCompleted")} />{" "}
               Completed
             </label>
           </div>
 
           <div className="flex justify-end space-x-3 mt-5">
-  <ButtonDialog
-    loading={false}  
-    btnColor="bg-blue-600 hover:bg-blue-700"
-    showCancel={true}
-    onCancel={handleCloseDialog}
-    onClick={handleSubmit(onSubmitHandler)}
-  >
-    Add Task
-  </ButtonDialog>
-</div>
+            <ButtonDialog
+              loading={false}
+              btnColor="bg-[#000000] hover:border-gray-100"
+              showCancel={true}
+              onCancel={handleCloseDialog}
+              onClick={handleSubmit(onSubmitHandler)}
+            >
+              Add
+            </ButtonDialog>
+          </div>
         </form>
       </FormProvider>
     </div>

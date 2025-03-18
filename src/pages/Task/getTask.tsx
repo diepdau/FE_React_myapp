@@ -3,19 +3,18 @@ import { useTaskStore } from "../../store/task";
 import { useEffect, useState } from "react";
 import { Card, CardContent, Typography, CircularProgress } from "@mui/material";
 import { Task } from "../../api/types";
-import TaskComments from "../TaskComment/taskComments";
+import TaskCommentList from "../TaskComment/TaskCommentList";
+import TaskAttachment from "../TaskAttachment/getAttachment";
 
 const TaskDetail = () => {
   const { id } = useParams();
   const { getTaskById } = useTaskStore();
   const [task, setTask] = useState<Task | null>(null);
-
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchTask = async () => {
-      const fetchedTask = await getTaskById(Number(id)); 
-      setTask(fetchedTask); 
+      const fetchedTask = await getTaskById(Number(id));
+      setTask(fetchedTask);
       setLoading(false);
     };
     fetchTask();
@@ -25,7 +24,7 @@ const TaskDetail = () => {
   if (!task) return <Typography>Không tìm thấy công việc!</Typography>;
 
   return (
-    <Card className="p-5 mx-auto w-1/2 mt-10 shadow-lg">
+    <Card className="p-5 mx-auto mt-10 shadow-lg">
       <CardContent>
         <Typography variant="h5" className="text-blue-600 font-bold">
           {task.title}
@@ -35,7 +34,8 @@ const TaskDetail = () => {
           Status: {task.isCompleted ? "Completed ✅" : "Pending ⏳"}
         </Typography>
       </CardContent>
-      <TaskComments taskId={task.id || 0} />
+      <TaskCommentList taskId={task.id || 0} />
+      <TaskAttachment taskId={task.id || 0} />
     </Card>
   );
 };

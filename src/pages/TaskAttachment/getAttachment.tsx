@@ -10,16 +10,15 @@ import AddTaskAttachment from "./addTaskAttachment";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 
-const TaskAttachments = () => {
+const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const { taskAttachments, getTaskAttachmentsByTaskId, deleteTaskAttachments } =
     useTaskAttachmentsStore();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   useEffect(() => {
-    getTaskAttachmentsByTaskId(2);
+    getTaskAttachmentsByTaskId(taskId);
   }, []);
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 70 },
-    { field: "taskId", headerName: "TaskId", width: 130, editable: true },
     {
       field: "fileName",
       headerName: "FileName",
@@ -114,4 +113,4 @@ const TaskAttachments = () => {
   );
 };
 
-export default TaskAttachments;
+export default TaskAttachment;
