@@ -11,6 +11,28 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
 import { downloadFileTaskAttachments } from "../../api/task-attachment";
+import ImageIcon from "@mui/icons-material/Image";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import DescriptionIcon from "@mui/icons-material/Description";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+
+const getFileIcon = (fileName: string) => {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  switch (ext) {
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+      return <ImageIcon sx={{ color: "blue", marginRight: 1 }} />;
+    case "pdf":
+      return <PictureAsPdfIcon sx={{ color: "red", marginRight: 1 }} />;
+    case "doc":
+    case "docx":
+      return <DescriptionIcon sx={{ color: "blue", marginRight: 1 }} />;
+    default:
+      return <InsertDriveFileIcon sx={{ color: "gray", marginRight: 1 }} />;
+  }
+};
 const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const { taskAttachments, getTaskAttachmentsByTaskId, deleteTaskAttachments } =
     useTaskAttachmentsStore();
@@ -22,9 +44,14 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
     { field: "id", headerName: "ID", width: 70 },
     {
       field: "fileName",
-      headerName: "FileName",
-      width: 130,
-      editable: true,
+      headerName: "File Name",
+      width: 200,
+      renderCell: (params) => (
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {getFileIcon(params.value)}
+          {params.value}
+        </div>
+      ),
     },
     {
       field: "fileUrl",
@@ -32,6 +59,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       width: 130,
       editable: true,
     },
+    
     {
       field: "UploadedAt",
       headerName: "UploadedAt",
@@ -88,11 +116,12 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+ 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+ 
   return (
     <>
-      <Paper sx={{ height: 800, width: "100%" }}>
+     <Paper sx={{ maxHeight: 800, width: "100%", overflow: "auto" }}>
         <Button variant="outlined" onClick={handleOpenDialog}>
           Add Task
         </Button>
@@ -118,6 +147,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
         onConfirm={handleDeleteConfirm}
         title="Are you sure you want to delete this task?"
       />
+       
     </>
   );
 };

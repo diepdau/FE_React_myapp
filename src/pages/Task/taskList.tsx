@@ -5,13 +5,13 @@ import {
   GridColDef,
   GridRenderCellParams,
   GridActionsCellItem,
-  GridRowParams,
+  GridRowParams,GridCellEditStopParams 
 } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { useTaskStore } from "../../store/task";
 import { useCategoryStore } from "../../store/category";
 import { toast } from "react-toastify";
-import { MenuItem, Select, Dialog, DialogContent, Button } from "@mui/material";
+import { MenuItem, Select, Dialog, DialogContent, Button, Paper } from "@mui/material";
 import useStore from "../../store";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import AddTask from "./addTask";
@@ -20,6 +20,11 @@ import { useNavigate } from "react-router-dom";
 import { useTaskLabelsStore } from "../../store/taskLabels";
 import { useLabelsStore } from "../../store/labels";
 import SelectReact from "react-select";
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { green, red } from "@mui/material/colors";
+import AddIcon from "@mui/icons-material/Add";
 export default function TaskList() {
   const user = useStore();
   const { tasks, getTasks, updateTask, deleteTask } = useTaskStore();
@@ -31,9 +36,6 @@ export default function TaskList() {
   const [selectedLabels, setSelectedLabels] = React.useState<number[]>([]);
   const navigate = useNavigate();
 
-  const handleRowDoubleClick = (params: GridRowParams) => {
-    navigate(`/tasks/${params.row.id}`);
-  };
   React.useEffect(() => {
     getTasks();
     getLabels();
@@ -92,7 +94,36 @@ export default function TaskList() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+  const [editingTaskLabels, setEditingTaskLabels] = React.useState<{ [key: number]: number[] }>({});
 
+  const handleLabelChange = (taskId: number, selectedOptions: any) => {
+    const selectedIds = selectedOptions.map((option: { value: number }) => option.value);
+    setEditingTaskLabels((prev) => ({ ...prev, [taskId]: selectedIds }));
+  };
+  
+  const handleCellEditStop = async (params: GridCellEditStopParams) => {
+    if (params.field === "labels" && editingTaskLabels[params.id as number]) {
+      try {
+        const selectedLabels = editingTaskLabels[params.id as number];
+        const newTaskLabels = selectedLabels.map((labelId) => ({
+          taskId: params.id as number,
+          labelId,
+          labelName: labels.find((label) => label.id === labelId)?.name || "",
+        }));
+  
+        await Promise.all(newTaskLabels.map((label) => createTaskLabels(label)));
+  
+        toast.success("Labels updated successfully!");
+        setEditingTaskLabels((prev) => {
+          const updated = { ...prev };
+          delete updated[params.id as number];
+          return updated;
+        });
+      } catch (error) {
+        toast.error("Failed to update labels.");
+      }
+    }
+  };
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 70 },
     { field: "title", headerName: "Title", width: 200, editable: true },
@@ -105,10 +136,17 @@ export default function TaskList() {
     {
       field: "isCompleted",
       headerName: "Status",
-      type: "boolean",
       width: 120,
       editable: true,
+      renderCell: (params: GridRenderCellParams) => {
+        return params.value ? (
+          <CheckCircleIcon style={{ color: green[500] }} />
+        ) : (
+          <CancelIcon style={{ color: red[500] }} />
+        );
+      },
     },
+    
     {
       field: "categoryId",
       headerName: "Category",
@@ -153,26 +191,37 @@ export default function TaskList() {
       headerName: "Labels",
       width: 250,
       editable: true,
-      renderEditCell: (params) => (
-        <SelectReact
-          isMulti
-          options={labels.map((label) => ({
-            value: label.id,
-            label: label.name,
-          }))}
-          onChange={(selectedOptions) => {
-            setSelectedLabels(
-              selectedOptions.map((option: { value: number }) => option.value)
-            );
-          }}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          menuPortalTarget={document.body}
-          menuPosition="fixed"
-          placeholder="Select Labels"
-        />
-      ),
-    },
+      renderCell: (params: GridRenderCellParams) => {
+        const labelIds = params.row.labels || [];
+        const taskLabels = labels.filter((label) => labelIds.includes(label.id));
+        return taskLabels.length > 0
+          ? taskLabels.map((label) => label.name).join(", ")
+          : "No Labels";
+      },
+      renderEditCell: (params) => {
+        if (!labels.length) return null;
+        const taskId = Number(params.id); 
+        const labelIds = editingTaskLabels[taskId] || params.row.labels || [];
+        return (
+          <SelectReact
+            isMulti
+            options={labels.map((label) => ({
+              value: label.id,
+              label: label.name,
+            }))}
+            value={labels
+              .filter((label) => labelIds.includes(label.id))
+              .map((label) => ({ value: label.id, label: label.name }))} 
+            onChange={(selectedOptions) => handleLabelChange(taskId, selectedOptions)}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            menuPortalTarget={document.body}
+            menuPosition="fixed"
+            placeholder="Select Labels"
+          />
+        );
+      },
+    },    
     {
       field: "actions",
       type: "actions",
@@ -181,7 +230,14 @@ export default function TaskList() {
       cellClassName: "actions",
       getActions: ({ id }) => [
         <GridActionsCellItem
-          icon={<DeleteIcon />}
+        icon={<DriveFileRenameOutlineIcon style={{ color: "orange" }} />} 
+        label="View"
+        onClick={() => navigate(`/tasks/${id}`)}
+        color="primary"
+      />,
+
+        <GridActionsCellItem
+          icon={<DeleteIcon  style={{ color: "red" }}/>}
           label="Delete"
           onClick={() => {
             setSelectedRow(id as number);
@@ -194,10 +250,24 @@ export default function TaskList() {
   ];
 
   return (
-    <div style={{ height: 500, width: "100%" }}>
-      <Button variant="outlined" onClick={handleOpenDialog}>
-        Add Task
-      </Button>
+   
+    <Paper sx={{ maxHeight: 800, width: "100%", overflow: "auto" }}>
+     <Button
+      variant="contained"
+      startIcon={<AddIcon />}
+      sx={{
+        textTransform: "none",
+        borderRadius: "12px", 
+        backgroundColor: "#ff9800",
+        color: "white",
+        "&:hover": {
+          backgroundColor: "#f57c00", 
+        },
+      }}
+      onClick={handleOpenDialog}
+    >
+      Add task
+    </Button>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogContent>
@@ -210,14 +280,15 @@ export default function TaskList() {
         columns={columns}
         checkboxSelection
         processRowUpdate={processRowUpdate}
-        onRowDoubleClick={handleRowDoubleClick}
+        onCellEditStop={handleCellEditStop}
       />
       <ConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="Are you sure you want to delete this task?"
+        title="Alert"
+        description="Are you sure you want to delete this task?"
       />
-    </div>
+    </Paper>
   );
 }

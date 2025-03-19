@@ -25,7 +25,7 @@ export async function createTaskAttachments(
 export async function deleteTaskAttachments(
   id: any
 ): Promise<Array<TaskAttachments>> {
-  const response = await apiClient.get(`task-attachments/${id}`);
+  const response = await apiClient.delete(`task-attachments/${id}`);
   return response.data;
 }
 export async function downloadFileTaskAttachments(

@@ -25,7 +25,7 @@ export const useTaskAttachmentsStore = create<TaskAttachmentsStore>()(
       await deleteTaskAttachments(id);
       return set((state) => ({
         ...state,
-        products: state.taskAttachments.filter((t) => id !== t.taskId),
+        taskAttachments: state.taskAttachments.filter((t) => id !== t.taskId),
       }));
     },
     downloadFileTaskAttachments: async (nameFile: string) => {
