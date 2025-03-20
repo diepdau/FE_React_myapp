@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
-import useStore from "../../store";
+import useStore from "../../store/auth";
 import { ButtonDialog } from "../../components/ButtonDialog";
 
 const taskAttachmentSchema = z.object({
@@ -17,25 +17,35 @@ const taskAttachmentSchema = z.object({
 type TaskAttachmentInput = z.infer<typeof taskAttachmentSchema>;
 
 const AddTaskAttachment = ({
+  Id,
   handleCloseDialog,
 }: {
+  Id: number;
   handleCloseDialog: () => void;
 }) => {
   const { createTaskAttachments, getTaskAttachmentsByTaskId } =
     useTaskAttachmentsStore();
   const store = useStore();
-  const [taskId] = useState(2);
   // const methods = useForm<TaskAttachmentInput>({
   //   resolver: zodResolver(taskAttachmentSchema),
   // });
 
   useEffect(() => {
-    getTaskAttachmentsByTaskId(taskId);
-  }, [taskId, getTaskAttachmentsByTaskId]);
+    getTaskAttachmentsByTaskId(Id);
+  }, [Id, getTaskAttachmentsByTaskId]);
 
   const methods = useForm();
   const { handleSubmit } = methods;
   const [files, setFiles] = useState<File[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const acceptedFileTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/jfif",
+    "application/pdf",
+  ];
+  const maxFileSize = 5 * 1024 * 1024;
 
   const onSubmitHandler = (data: any) => {
     createTaskAttachmentsMutation.mutate();
@@ -43,12 +53,25 @@ const AddTaskAttachment = ({
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      setFiles(Array.from(event.target.files));
+      const selectedFiles = Array.from(event.target.files);
+      const invalidFiles = selectedFiles.filter((file) => {
+        return (
+          !acceptedFileTypes.includes(file.type) || file.size > maxFileSize
+        );
+      });
+
+      if (invalidFiles.length > 0) {
+        setErrorMessage(
+          "Invalid file type or file size exceeds 5MB. Only JPG, PNG, PDF files are allowed."
+        );
+      } else {
+        setErrorMessage(null);
+        setFiles(selectedFiles);
+      }
     }
   };
-
   const createTaskAttachmentsMutation = useMutation({
-    mutationFn: async () => createTaskAttachments(taskId, files),
+    mutationFn: async () => createTaskAttachments(Id, files),
     onMutate: () => store.setRequestLoading(true),
     onSuccess: () => {
       store.setRequestLoading(false);
@@ -67,7 +90,12 @@ const AddTaskAttachment = ({
       </h3>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmitHandler)} className="form">
-          <input type="file" multiple onChange={handleFileChange} />
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            accept="image/jpeg, image/png, image/jfif, application/pdf"
+          />
           <div className="flex justify-end space-x-3 mt-5">
             <ButtonDialog
               loading={false}

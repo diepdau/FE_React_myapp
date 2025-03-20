@@ -9,7 +9,7 @@ import AddTaskComment from "./addTaskComments";
 import { Dialog, DialogContent } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import ConfirmDialog from "../../components/ConfirmDialog";
-
+import AddIcon from "@mui/icons-material/Add";
 const TaskCommentList = ({ taskId }: { taskId: number }) => {
   const { taskComments, getTaskCommentsByTaskId, deleteTaskComments } =
     useTaskCommentsStore();
@@ -71,7 +71,7 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       getActions: ({ id }) => {
         return [
           <GridActionsCellItem
-            icon={<DeleteIcon />}
+            icon={<DeleteIcon style={{ color: "red" }} />}
             label="Delete"
             onClick={() => setDeleteDialogOpen(true)}
             color="inherit"
@@ -82,39 +82,52 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
   ];
 
   return (
-    <>
-      <Paper sx={{ height: 400, width: "100%" }}>
-        <Button variant="outlined" onClick={handleOpenDialog}>
-          Add Task
+    <Paper className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-2xl">Task Comments</p>
+        <Button
+          variant="contained"
+          onClick={handleOpenDialog}
+          startIcon={<AddIcon />}
+          sx={{
+            textTransform: "none",
+            borderRadius: "12px",
+            backgroundColor: "#ff9800",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#f57c00",
+            },
+          }}
+        >
+          Add
         </Button>
-
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogContent>
-            <AddTaskComment
-              Id={taskId || 0}
-              handleCloseDialog={handleCloseDialog}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <ConfirmDialog
-          open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-          onConfirm={handleDeleteConfirm}
-          title="Are you sure you want to delete this task?"
-        />
-        <DataGrid
-          editMode="row"
-          rows={taskComments}
-          columns={columns}
-          checkboxSelection
-          onRowSelectionModelChange={(newSelection) =>
-            setSelectedRows(newSelection as number[])
-          }
-          sx={{ border: 0 }}
-        />
-      </Paper>
-    </>
+      </div>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogContent>
+          <AddTaskComment
+            Id={taskId || 0}
+            handleCloseDialog={handleCloseDialog}
+          />
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Alert"
+        description="Are you sure you want to delete this task comment?"
+      />
+      <DataGrid
+        editMode="row"
+        rows={taskComments}
+        columns={columns}
+        checkboxSelection
+        onRowSelectionModelChange={(newSelection) =>
+          setSelectedRows(newSelection as number[])
+        }
+        sx={{ border: 0 }}
+      />
+    </Paper>
   );
 };
 

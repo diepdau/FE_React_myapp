@@ -27,7 +27,7 @@ export const ButtonDialog: React.FC<LoadingButtonProps> = ({
         type="button"
         onClick={onClick}
         className={twMerge(
-          `border border-white w-[190px] p-3 rounded-[100px] transition`,
+          `border border-white w-[190px] p-2 rounded-[12px] transition`,
           `${btnColor} ${loading ? "bg-gray-700" : ""}`
         )}
         disabled={loading}
@@ -48,7 +48,7 @@ export const ButtonDialog: React.FC<LoadingButtonProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="border border-gray-400 bg-gray-600 text-white w-[120px] p-3 rounded-[100px] transition hover:bg-gray-500"
+          className="border border-gray-400 bg-gray-600 text-white w-[120px] p-2 rounded-[12px] transition hover:bg-gray-500"
         >
           Cancel
         </button>

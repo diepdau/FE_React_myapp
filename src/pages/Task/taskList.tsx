@@ -5,14 +5,21 @@ import {
   GridColDef,
   GridRenderCellParams,
   GridActionsCellItem,
-  GridRowParams,GridCellEditStopParams 
+  GridCellEditStopParams,
 } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { useTaskStore } from "../../store/task";
 import { useCategoryStore } from "../../store/category";
 import { toast } from "react-toastify";
-import { MenuItem, Select, Dialog, DialogContent, Button, Paper } from "@mui/material";
-import useStore from "../../store";
+import {
+  MenuItem,
+  Select,
+  Dialog,
+  DialogContent,
+  Button,
+  Paper,
+} from "@mui/material";
+import useStore from "../../store/auth";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import AddTask from "./addTask";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -20,16 +27,17 @@ import { useNavigate } from "react-router-dom";
 import { useTaskLabelsStore } from "../../store/taskLabels";
 import { useLabelsStore } from "../../store/labels";
 import SelectReact from "react-select";
-import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import { Checkbox } from "@mui/material";
 import { green, red } from "@mui/material/colors";
 import AddIcon from "@mui/icons-material/Add";
 export default function TaskList() {
   const user = useStore();
   const { tasks, getTasks, updateTask, deleteTask } = useTaskStore();
   const { categories, getCategories } = useCategoryStore();
-  const [selectedRow, setSelectedRow] = React.useState<number | null>(null);
+  const [selectedRows, setSelectedRows] = React.useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const { createTaskLabels } = useTaskLabelsStore();
   const { labels, getLabels } = useLabelsStore();
@@ -56,7 +64,6 @@ export default function TaskList() {
         };
 
         await updateTask(updatedTask);
-        console.log("selectedlables", selectedLabels);
         const newTaskLabels = selectedLabels.map((labelId) => ({
           taskId: newRow.id,
           labelId,
@@ -68,23 +75,26 @@ export default function TaskList() {
         toast.success("Task updated successfully!");
         return updatedTask;
       } catch (error) {
+        console.log("err add task", error);
         toast.error("Failed to update task.");
         throw error;
       }
     },
     [updateTask, selectedLabels, createTaskLabels, labels]
   );
-
   const handleDeleteConfirm = async () => {
-    if (selectedRow !== null) {
-      try {
-        await deleteTask(selectedRow);
-        toast.success("Task deleted successfully!");
-        setSelectedRow(null);
-        setDeleteDialogOpen(false);
-      } catch (error) {
-        toast.error("Failed to delete task.");
-      }
+    if (selectedRows.length === 0) {
+      toast.warning("Please select at least one task to delete.");
+      return;
+    }
+    try {
+      await Promise.all(selectedRows.map((id) => deleteTask(id)));
+      toast.success("Task deleted successfully!");
+      setSelectedRows([]);
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to delete task.");
     }
   };
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -94,13 +104,17 @@ export default function TaskList() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-  const [editingTaskLabels, setEditingTaskLabels] = React.useState<{ [key: number]: number[] }>({});
+  const [editingTaskLabels, setEditingTaskLabels] = React.useState<{
+    [key: number]: number[];
+  }>({});
 
   const handleLabelChange = (taskId: number, selectedOptions: any) => {
-    const selectedIds = selectedOptions.map((option: { value: number }) => option.value);
+    const selectedIds = selectedOptions.map(
+      (option: { value: number }) => option.value
+    );
     setEditingTaskLabels((prev) => ({ ...prev, [taskId]: selectedIds }));
   };
-  
+
   const handleCellEditStop = async (params: GridCellEditStopParams) => {
     if (params.field === "labels" && editingTaskLabels[params.id as number]) {
       try {
@@ -110,9 +124,11 @@ export default function TaskList() {
           labelId,
           labelName: labels.find((label) => label.id === labelId)?.name || "",
         }));
-  
-        await Promise.all(newTaskLabels.map((label) => createTaskLabels(label)));
-  
+
+        await Promise.all(
+          newTaskLabels.map((label) => createTaskLabels(label))
+        );
+
         toast.success("Labels updated successfully!");
         setEditingTaskLabels((prev) => {
           const updated = { ...prev };
@@ -136,21 +152,38 @@ export default function TaskList() {
     {
       field: "isCompleted",
       headerName: "Status",
-      width: 120,
+      width: 80,
       editable: true,
       renderCell: (params: GridRenderCellParams) => {
         return params.value ? (
-          <CheckCircleIcon style={{ color: green[500] }} />
+          <CheckBoxIcon style={{ color: green[500] }} />
         ) : (
-          <CancelIcon style={{ color: red[500] }} />
+          <CheckBoxOutlineBlankIcon style={{ color: red[500] }} />
+        );
+      },
+      renderEditCell: (params: GridRenderCellParams) => {
+        return (
+          <Checkbox
+            checked={params.value}
+            onChange={(e) => {
+              const newValue = e.target.checked;
+              params.api.setEditCellValue({
+                id: params.id,
+                field: params.field,
+                value: newValue,
+              });
+            }}
+            style={{
+              color: params.value ? green[500] : red[500],
+            }}
+          />
         );
       },
     },
-    
     {
       field: "categoryId",
       headerName: "Category",
-      width: 150,
+      width: 80,
       editable: true,
       renderCell: (params: GridRenderCellParams) => {
         const category = categories.find((c) => c.id === params.row.categoryId);
@@ -179,28 +212,49 @@ export default function TaskList() {
     {
       field: "createdAt",
       headerName: "Created At",
-      width: 150,
+      width: 120,
       type: "dateTime",
       editable: true,
       valueFormatter: (params: { value: any }) =>
         dayjs(params.value).format("DD/MM/YYYY"),
     },
-    { field: "userName", headerName: "User Name", width: 150 },
+    { field: "userName", headerName: "User Name", width: 100 },
     {
       field: "labels",
       headerName: "Labels",
-      width: 250,
+      width: 350,
       editable: true,
       renderCell: (params: GridRenderCellParams) => {
         const labelIds = params.row.labels || [];
-        const taskLabels = labels.filter((label) => labelIds.includes(label.id));
-        return taskLabels.length > 0
-          ? taskLabels.map((label) => label.name).join(", ")
-          : "No Labels";
+        const taskLabels = labels.filter((label) =>
+          labelIds.includes(label.name)
+        );
+
+        if (taskLabels.length > 0) {
+          return taskLabels.map((label, index) => (
+            <span
+              key={index}
+              style={{
+                backgroundColor: getRandomPastelColor(),
+                borderRadius: "12px",
+                padding: "5px 10px",
+                margin: "2px",
+                color: "#fff",
+                fontSize: "14px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+              }}
+            >
+              {label.name}
+            </span>
+          ));
+        } else {
+          return <span style={{ color: "#888" }}>No Labels</span>;
+        }
       },
       renderEditCell: (params) => {
         if (!labels.length) return null;
-        const taskId = Number(params.id); 
+        const taskId = Number(params.id);
         const labelIds = editingTaskLabels[taskId] || params.row.labels || [];
         return (
           <SelectReact
@@ -211,8 +265,10 @@ export default function TaskList() {
             }))}
             value={labels
               .filter((label) => labelIds.includes(label.id))
-              .map((label) => ({ value: label.id, label: label.name }))} 
-            onChange={(selectedOptions) => handleLabelChange(taskId, selectedOptions)}
+              .map((label) => ({ value: label.id, label: label.name }))}
+            onChange={(selectedOptions) =>
+              handleLabelChange(taskId, selectedOptions)
+            }
             className="basic-multi-select"
             classNamePrefix="select"
             menuPortalTarget={document.body}
@@ -221,7 +277,8 @@ export default function TaskList() {
           />
         );
       },
-    },    
+    },
+
     {
       field: "actions",
       type: "actions",
@@ -230,17 +287,16 @@ export default function TaskList() {
       cellClassName: "actions",
       getActions: ({ id }) => [
         <GridActionsCellItem
-        icon={<DriveFileRenameOutlineIcon style={{ color: "orange" }} />} 
-        label="View"
-        onClick={() => navigate(`/tasks/${id}`)}
-        color="primary"
-      />,
+          icon={<DriveFileRenameOutlineIcon style={{ color: "orange" }} />}
+          label="View"
+          onClick={() => navigate(`/tasks/${id}`)}
+          color="primary"
+        />,
 
         <GridActionsCellItem
-          icon={<DeleteIcon  style={{ color: "red" }}/>}
+          icon={<DeleteIcon style={{ color: "red" }} />}
           label="Delete"
           onClick={() => {
-            setSelectedRow(id as number);
             setDeleteDialogOpen(true);
           }}
           color="inherit"
@@ -248,26 +304,33 @@ export default function TaskList() {
       ],
     },
   ];
-
+  const getRandomPastelColor = () => {
+    const r = Math.floor(Math.random() * 127 + 127);
+    const g = Math.floor(Math.random() * 127 + 127);
+    const b = Math.floor(Math.random() * 127 + 127);
+    return `rgb(${r}, ${g}, ${b})`;
+  };
   return (
-   
-    <Paper sx={{ maxHeight: 800, width: "100%", overflow: "auto" }}>
-     <Button
-      variant="contained"
-      startIcon={<AddIcon />}
-      sx={{
-        textTransform: "none",
-        borderRadius: "12px", 
-        backgroundColor: "#ff9800",
-        color: "white",
-        "&:hover": {
-          backgroundColor: "#f57c00", 
-        },
-      }}
-      onClick={handleOpenDialog}
-    >
-      Add task
-    </Button>
+    <Paper sx={{ width: "100%", padding: "1rem" }}>
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-2xl">Task List</p>
+        <Button
+          variant="contained"
+          onClick={handleOpenDialog}
+          startIcon={<AddIcon />}
+          sx={{
+            textTransform: "none",
+            borderRadius: "12px",
+            backgroundColor: "#ff9800",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#f57c00",
+            },
+          }}
+        >
+          Add
+        </Button>
+      </div>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogContent>
@@ -280,6 +343,9 @@ export default function TaskList() {
         columns={columns}
         checkboxSelection
         processRowUpdate={processRowUpdate}
+        onRowSelectionModelChange={(newSelection) =>
+          setSelectedRows(newSelection as number[])
+        }
         onCellEditStop={handleCellEditStop}
       />
       <ConfirmDialog

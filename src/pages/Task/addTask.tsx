@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { object, string, number, boolean, array } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
-import useStore from "../../store";
+import useStore from "../../store/auth";
 import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
 import { TaskCreate } from "../../api/types";
@@ -44,25 +44,29 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
   });
   const mutation = useMutation({
     mutationFn: createTask,
-    onMutate: () => store.setRequestLoading(true),
-    onSuccess: async (task) => {
+    onMutate: async (newTask) => {
+      console.log("Mutating with newTask:", newTask);
+      try {
+        if (newTask.labels && newTask.labels.length > 0) {
+          const taskLabelsData = newTask.labels.map((labelId) => ({
+            taskId: 4, //chua la cai task moi tao sua be
+            labelId,
+            labelName: labels.find((label) => label.id === labelId)?.name || "",
+          }));
+
+          for (const taskLabel of taskLabelsData) {
+            await createTaskLabels(taskLabel);
+          }
+          toast.success("Task labels assigned successfully");
+        }
+      } catch (error) {
+        toast.error("Failed to assigned task labels.");
+      }
+      store.setRequestLoading(true);
+    },
+    onSuccess: () => {
       store.setRequestLoading(false);
       toast.success("Task created successfully");
-      try {
-        console.log("tasklabel123", selectedLabels);
-        const taskLabelsData = selectedLabels.map((labelId) => ({
-          taskId: 2,
-          labelId,
-          labelName: labels.find((label) => label.id === labelId)?.name || "",
-        }));
-        for (const taskLabel of taskLabelsData) {
-          await createTaskLabels(taskLabel);
-          console.log("tasklabel", taskLabel);
-        }
-        toast.success("Task labels updated successfully");
-      } catch (error) {
-        toast.error("Failed to update task labels.");
-      }
       handleCloseDialog();
     },
     onError: (error: any) => {
@@ -86,13 +90,13 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
   }, [isSubmitSuccessful]);
 
   const onSubmitHandler: SubmitHandler<TaskInput> = (values) => {
-    console.log("Submitted values:", values);
     const newTask: TaskCreate = {
       title: values.title,
       description: values.description,
       userId: Number(user?.authUser?.id),
       categoryId: values.categoryId,
       isCompleted: values.isCompleted || false,
+      labels: selectedLabels.map((label) => Number(label)),
     };
     mutation.mutate(newTask);
   };

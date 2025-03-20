@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import InputField from "../components/InputField";
 import { LoadingButton } from "../components/LoadingButton";
 import { Link, useNavigate } from "react-router-dom";
-import useStore from "../store";
+import useStore from "../store/auth";
 import { RegisterUserFn } from "../api/auth";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";

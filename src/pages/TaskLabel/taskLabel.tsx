@@ -7,10 +7,9 @@ import {
   GridRowSelectionModel,
 } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
-import { Dialog, DialogActions, DialogTitle } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const TaskLabels = () => {
   const { taskLabels, getTaskLabels, getTaskLabelsByTaskId, deleteTaskLabels } =
@@ -90,22 +89,13 @@ const TaskLabels = () => {
         />
       </Paper>
 
-      <Dialog
+      <ConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>
-          Are you sure you want to delete the selected labels?
-        </DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteConfirm} color="error">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDeleteConfirm}
+        title="Alert"
+        description="Are you sure you want to delete this label?"
+      />
     </>
   );
 };

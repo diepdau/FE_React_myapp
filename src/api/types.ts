@@ -20,6 +20,8 @@ export type Task = {
   userId: number;
   categoryId: number;
   isCompleted: boolean;
+  categoryName?: string;
+  labels?: string[];
 };
 export type TaskStore = {
   tasks: Array<Task>;
@@ -36,6 +38,7 @@ export type TaskCreate = {
   userId: number;
   categoryId: number;
   isCompleted: boolean;
+  labels?: number[];
   // createdAt: Date | string;
 };
 

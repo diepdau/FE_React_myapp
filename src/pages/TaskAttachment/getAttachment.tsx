@@ -15,7 +15,7 @@ import ImageIcon from "@mui/icons-material/Image";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-
+import AddIcon from "@mui/icons-material/Add";
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split(".").pop()?.toLowerCase();
   switch (ext) {
@@ -23,20 +23,22 @@ const getFileIcon = (fileName: string) => {
     case "jpeg":
     case "png":
     case "gif":
-      return <ImageIcon sx={{ color: "blue", marginRight: 1 }} />;
+    case "jfif":
+      return <ImageIcon sx={{ color: "#67acd4", marginRight: 1 }} />;
     case "pdf":
       return <PictureAsPdfIcon sx={{ color: "red", marginRight: 1 }} />;
     case "doc":
     case "docx":
       return <DescriptionIcon sx={{ color: "blue", marginRight: 1 }} />;
     default:
-      return <InsertDriveFileIcon sx={{ color: "gray", marginRight: 1 }} />;
+      return <InsertDriveFileIcon sx={{ color: "#ffa939", marginRight: 1 }} />;
   }
 };
 const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const { taskAttachments, getTaskAttachmentsByTaskId, deleteTaskAttachments } =
     useTaskAttachmentsStore();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
   useEffect(() => {
     getTaskAttachmentsByTaskId(taskId);
   }, []);
@@ -56,10 +58,9 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
     {
       field: "fileUrl",
       headerName: "FileUrl",
-      width: 130,
+      width: 230,
       editable: true,
     },
-    
     {
       field: "UploadedAt",
       headerName: "UploadedAt",
@@ -76,7 +77,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       cellClassName: "actions",
       getActions: ({ id, row }) => [
         <GridActionsCellItem
-          icon={<DeleteIcon />}
+          icon={<DeleteIcon style={{ color: "red" }} />}
           label="Delete"
           onClick={() => {
             setDeleteDialogOpen(true);
@@ -84,7 +85,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
           color="inherit"
         />,
         <GridActionsCellItem
-          icon={<DownloadIcon />}
+          icon={<DownloadIcon style={{ color: "orange" }} />}
           label="Download"
           onClick={() => {
             downloadFileTaskAttachments(row.fileName);
@@ -116,39 +117,56 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
- 
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
- 
   return (
-    <>
-     <Paper sx={{ maxHeight: 800, width: "100%", overflow: "auto" }}>
-        <Button variant="outlined" onClick={handleOpenDialog}>
-          Add Task
+    <Paper className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-2xl">Task Attachments</p>
+        <Button
+          variant="contained"
+          onClick={handleOpenDialog}
+          startIcon={<AddIcon />}
+          sx={{
+            textTransform: "none",
+            borderRadius: "12px",
+            backgroundColor: "#ff9800",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#f57c00",
+            },
+          }}
+        >
+          Add
         </Button>
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogContent>
-            <AddTaskAttachment handleCloseDialog={handleCloseDialog} />
-          </DialogContent>
-        </Dialog>
-        <DataGrid
-          editMode="row"
-          rows={taskAttachments}
-          columns={columns}
-          checkboxSelection
-          onRowSelectionModelChange={(newSelection) =>
-            setSelectedRows(newSelection as number[])
-          }
-          sx={{ border: 0 }}
-        />
-      </Paper>
+      </div>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogContent>
+          <AddTaskAttachment
+            Id={taskId}
+            handleCloseDialog={handleCloseDialog}
+          />
+        </DialogContent>
+      </Dialog>
+      <DataGrid
+        editMode="row"
+        rows={taskAttachments}
+        columns={columns}
+        checkboxSelection
+        onRowSelectionModelChange={(newSelection) =>
+          setSelectedRows(newSelection as number[])
+        }
+        sx={{ border: 0 }}
+      />
+
       <ConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="Are you sure you want to delete this task?"
+        title="Alert"
+        description="Are you sure you want to delete this task attachment?"
       />
-       
-    </>
+    </Paper>
   );
 };
 

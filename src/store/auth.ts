@@ -1,21 +1,20 @@
 import { create } from "zustand";
 import { IUser } from "../api/types";
-import { getAuthUser, logoutUserFn } from "../api/users";
-import Cookies from "js-cookie";
+import { logoutUserFn } from "../api/users";
 type Store = {
   authUser: IUser | null;
   token: string | null;
   requestLoading: boolean;
   setAuthUser: (user: IUser | null, token?: string | null) => void;
   logoutUser: () => void;
-  checkAuth: () => Promise<void>;
   setRequestLoading: (isLoading: boolean) => void;
+  loginSuccess: boolean;
 };
 const useStore = create<Store>((set) => ({
   authUser: null,
-  token:
-    Cookies.get("AccessToken") || localStorage.getItem("AccessToken") || null,
+  token: null,
   requestLoading: false,
+  loginSuccess: false,
   setAuthUser: (user, token) => {
     if (token) {
       localStorage.setItem("AccessToken", token);
@@ -23,16 +22,17 @@ const useStore = create<Store>((set) => ({
     set((state) => ({
       ...state,
       authUser: user,
-      token: token || state.token,
+      token: token,
+      loginSuccess: true,
     }));
   },
   logoutUser: async () => {
     try {
       await logoutUserFn();
+      localStorage.removeItem("AccessToken");
     } catch (error) {
       console.error("Error logging out:", error);
     }
-    localStorage.removeItem("AccessToken");
     set(() => ({
       authUser: null,
       token: null,
@@ -40,23 +40,6 @@ const useStore = create<Store>((set) => ({
   },
   setRequestLoading: (isLoading) =>
     set((state) => ({ ...state, requestLoading: isLoading })),
-  checkAuth: async () => {
-    const token =
-      Cookies.get("AccessToken") || localStorage.getItem("AccessToken");
-    if (token) {
-      try {
-        const user = await getAuthUser();
-        set((state) => ({
-          ...state,
-          authUser: user,
-          token,
-        }));
-      } catch (error) {
-        console.error("Token expired or invalid:", error);
-        localStorage.removeItem("AccessToken");
-      }
-    }
-  },
 }));
 
 export default useStore;

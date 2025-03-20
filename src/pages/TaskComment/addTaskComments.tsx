@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { object, string } from "zod";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
-import useStore from "../../store";
+import useStore from "../../store/auth";
 import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
 import { TaskComments } from "../../api/types";

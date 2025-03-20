@@ -1,12 +1,12 @@
 import AvataAdmin from "../asset/avataAdmin.png";
 import IconNo from "../asset/IconNotification.png";
-import useStore from "../store";
+import useSignStore from "../store/auth";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { logoutUserFn } from "../api/users";
 const Navbar = () => {
-  const store = useStore();
+  const store = useSignStore();
   const authUser = store.authUser;
   const navigate = useNavigate();
   const mutation = useMutation({

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import InputField from "../components/InputField";
 import { LoadingButton } from "../components/LoadingButton";
 import { Link, useNavigate } from "react-router-dom";
-import useStore from "../store";
+import useStore from "../store/auth";
 import { loginUserFn } from "../api/auth";
 import { useMutation } from "@tanstack/react-query";
 import Hello from "../../src/asset/hello.png";
@@ -43,8 +43,10 @@ const Login = () => {
     onSuccess: (data) => {
       store.setRequestLoading(false);
       store.setAuthUser(data.user, data.token);
-      toast.success("Login successful");
-      navigate("/dashboard");
+      if (store.loginSuccess) {
+        toast.success("Login successful");
+        navigate("/dashboard");
+      }
     },
     onError: (error: any) => {
       store.setRequestLoading(false);

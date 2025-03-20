@@ -1,5 +1,5 @@
 import axios from "axios";
-import useStore from "../store/index";
+import useStore from "../store/auth";
 
 const BASE_URL = "https://localhost:7001/api/";
 
@@ -13,8 +13,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     try {
-      const store = useStore.getState();
-      const token = store.token;
+      const token = useStore.getState().token;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
