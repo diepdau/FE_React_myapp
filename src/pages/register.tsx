@@ -49,7 +49,7 @@ const Register = () => {
       store.setRequestLoading(false);
       toast.success("Registration successful");
       console.log("Registration successful:", data);
-      navigate("/login");
+      navigate("/");
     },
     onError: (error: any) => {
       store.setRequestLoading(false);

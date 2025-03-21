@@ -49,7 +49,9 @@ export default function TaskList() {
     getLabels();
     getCategories();
   }, []);
-
+  const handleSuccess = () => {
+    getTasks();
+  };
   const processRowUpdate = React.useCallback(
     async (newRow: GridRowModel) => {
       try {
@@ -62,21 +64,22 @@ export default function TaskList() {
           userId: Number(user?.authUser?.id),
           categoryId: newRow.categoryId,
         };
-
         await updateTask(updatedTask);
         const newTaskLabels = selectedLabels.map((labelId) => ({
           taskId: newRow.id,
           labelId,
           labelName: labels.find((label) => label.id === labelId)?.name || "",
         }));
+        console.log(selectedLabels);
         await Promise.all(
           newTaskLabels.map((label) => createTaskLabels(label))
         );
+        handleSuccess();
         toast.success("Task updated successfully!");
         return updatedTask;
-      } catch (error) {
-        console.log("err add task", error);
-        toast.error("Failed to update task.");
+      } catch (error: any) {
+        console.log("err update task", error);
+        toast.error(error?.response.data.message || "Failed to update task.");
         throw error;
       }
     },
@@ -91,10 +94,11 @@ export default function TaskList() {
       await Promise.all(selectedRows.map((id) => deleteTask(id)));
       toast.success("Task deleted successfully!");
       setSelectedRows([]);
+      handleSuccess();
       setDeleteDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(error?.response.data.message || "Failed to delete task.");
       console.log(error);
-      toast.error("Failed to delete task.");
     }
   };
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -109,9 +113,11 @@ export default function TaskList() {
   }>({});
 
   const handleLabelChange = (taskId: number, selectedOptions: any) => {
+    console.log("handleChange", selectedOptions);
     const selectedIds = selectedOptions.map(
       (option: { value: number }) => option.value
     );
+    console.log("selectedIds", selectedIds);
     setEditingTaskLabels((prev) => ({ ...prev, [taskId]: selectedIds }));
   };
 
@@ -124,11 +130,10 @@ export default function TaskList() {
           labelId,
           labelName: labels.find((label) => label.id === labelId)?.name || "",
         }));
-
         await Promise.all(
           newTaskLabels.map((label) => createTaskLabels(label))
         );
-
+        handleSuccess();
         toast.success("Labels updated successfully!");
         setEditingTaskLabels((prev) => {
           const updated = { ...prev };
@@ -211,12 +216,11 @@ export default function TaskList() {
     },
     {
       field: "createdAt",
-      headerName: "Created At",
+      headerName: "CreatedAt",
       width: 120,
       type: "dateTime",
       editable: true,
-      valueFormatter: (params: { value: any }) =>
-        dayjs(params.value).format("DD/MM/YYYY"),
+      valueFormatter: (params) => dayjs(params).format("DD/MM/YYYY"),
     },
     { field: "userName", headerName: "User Name", width: 100 },
     {
@@ -257,23 +261,44 @@ export default function TaskList() {
         const taskId = Number(params.id);
         const labelIds = editingTaskLabels[taskId] || params.row.labels || [];
         return (
+          // <SelectReact
+          //   isMulti
+          //   options={labels.map((label) => ({
+          //     value: label.id,
+          //     label: label.name,
+          //   }))}
+          //   value={labels
+          //     .filter((label) => labelIds.includes(label.id))
+          //     .map((label) => ({ value: label.id, label: label.name }))}
+          //   onChange={(selectedOptions) =>
+          //     handleLabelChange(taskId, selectedOptions)
+          //   }
+          //   className="basic-multi-select w-full"
+          //   classNamePrefix="select"
+          //   menuPortalTarget={document.body}
+          //   menuPosition="fixed"
+          // />
           <SelectReact
             isMulti
-            options={labels.map((label) => ({
-              value: label.id,
-              label: label.name,
-            }))}
+            options={labels
+              .filter((label) => !labelIds.includes(label.id))
+              .map((label) => ({
+                value: label.id,
+                label: label.name,
+              }))}
             value={labels
               .filter((label) => labelIds.includes(label.id))
-              .map((label) => ({ value: label.id, label: label.name }))}
-            onChange={(selectedOptions) =>
-              handleLabelChange(taskId, selectedOptions)
-            }
-            className="basic-multi-select"
+              .map((label) => ({
+                value: label.id,
+                label: label.name,
+              }))}
+            onChange={(selectedOptions) => {
+              handleLabelChange(taskId, selectedOptions);
+            }}
+            className="basic-multi-select w-full"
             classNamePrefix="select"
-            menuPortalTarget={document.body}
-            menuPosition="fixed"
             placeholder="Select Labels"
+            menuPortalTarget={document.body}
           />
         );
       },
@@ -334,7 +359,10 @@ export default function TaskList() {
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogContent>
-          <AddTask handleCloseDialog={handleCloseDialog} />
+          <AddTask
+            handleCloseDialog={handleCloseDialog}
+            handleOnSuccess={handleSuccess}
+          />
         </DialogContent>
       </Dialog>
 

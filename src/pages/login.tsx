@@ -72,6 +72,7 @@ const Login = () => {
   // };
   const onSubmitHandler: SubmitHandler<LoginInput> = () => {
     mutation.mutate({ email: "admin@example.com", password: "Admin123@" });
+    // mutation.mutate({ email: "Diep12345@mail.com", password: "Diep12345@" });
   };
   return (
     <div className="w-full h-screen flex items-center justify-center">

@@ -18,9 +18,11 @@ export type TaskCommentInput = TypeOf<typeof taskCommentsSchema>;
 const AddTaskComment = ({
   Id,
   handleCloseDialog,
+  handleOnSuccess,
 }: {
   Id: number;
   handleCloseDialog: () => void;
+  handleOnSuccess: () => void;
 }) => {
   const { createTaskComments } = useTaskCommentsStore();
   const user = useStore();
@@ -35,6 +37,7 @@ const AddTaskComment = ({
       store.setRequestLoading(false);
       toast.success("Create task atachment successful");
       handleCloseDialog();
+      handleOnSuccess();
     },
     onError: (error: any) => {
       store.setRequestLoading(false);

@@ -28,9 +28,12 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       toast.success("Task comment deleted successfully!");
       setSelectedRows([]);
       setDeleteDialogOpen(false);
-    } catch (error) {
+      handleOnSuccess();
+    } catch (error: any) {
       console.log(error);
-      toast.error("Failed to delete task comment.");
+      toast.error(
+        error.response.data.message || "Failed to delete task comment."
+      );
     }
   };
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -80,7 +83,9 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       },
     },
   ];
-
+  const handleOnSuccess = () => {
+    getTaskCommentsByTaskId(taskId);
+  };
   return (
     <Paper className="p-4">
       <div className="flex justify-between items-center mb-6">
@@ -107,6 +112,7 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
           <AddTaskComment
             Id={taskId || 0}
             handleCloseDialog={handleCloseDialog}
+            handleOnSuccess={handleOnSuccess}
           />
         </DialogContent>
       </Dialog>

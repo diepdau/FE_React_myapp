@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Login from "./pages/login";
-import Dashboard from "./pages/dashboard";
 import Register from "./pages/register";
 import TaskList from "./pages/Task/taskList";
 import TaskLabels from "./pages/TaskLabel/taskLabel";
@@ -29,7 +28,7 @@ const queryClient = new QueryClient();
 function App() {
   const store = useStore();
   const token = store.token;
-  const [auth, setAuth] = useState(false);
+  const [auth, setAuth] = useState<boolean>(!!token);
   useEffect(() => {
     if (token) {
       setAuth(true);

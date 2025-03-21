@@ -9,14 +9,14 @@ import {
 } from "../api/task";
 
 export const useTaskStore = create<TaskStore>()((set) => ({
-  tasks: [],  
+  tasks: [],
   getTasks: async () => {
     const tasks = await getTasks();
     return set((state) => ({ ...state, tasks }));
   },
   getTaskById: async (id: number) => {
     const task = await getTaskById(id);
-    return task; 
+    return task;
   },
   createTask: async (newProduct: TaskCreate) => {
     const t = await createTasks(newProduct);

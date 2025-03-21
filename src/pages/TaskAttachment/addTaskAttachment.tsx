@@ -19,9 +19,11 @@ type TaskAttachmentInput = z.infer<typeof taskAttachmentSchema>;
 const AddTaskAttachment = ({
   Id,
   handleCloseDialog,
+  handleOnSuccess,
 }: {
   Id: number;
   handleCloseDialog: () => void;
+  handleOnSuccess: () => void;
 }) => {
   const { createTaskAttachments, getTaskAttachmentsByTaskId } =
     useTaskAttachmentsStore();
@@ -73,8 +75,9 @@ const AddTaskAttachment = ({
   const createTaskAttachmentsMutation = useMutation({
     mutationFn: async () => createTaskAttachments(Id, files),
     onMutate: () => store.setRequestLoading(true),
-    onSuccess: () => {
+    onSuccess: (file) => {
       store.setRequestLoading(false);
+      handleOnSuccess();
       toast.success("Attachments uploaded successfully!");
     },
     onError: (error: any) => {

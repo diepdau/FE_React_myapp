@@ -1,37 +1,54 @@
 import AvataAdmin from "../asset/avataAdmin.png";
 import IconNo from "../asset/IconNotification.png";
-import useSignStore from "../store/auth";
+import useStore from "../store/auth";
 import { useMutation } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { logoutUserFn } from "../api/users";
+import { getAuthUser, logoutUserFn } from "../api/users";
+import { useEffect } from "react";
 const Navbar = () => {
-  const store = useSignStore();
-  const authUser = store.authUser;
+  const { authUser, token, logoutUser, setAuthUser, setRequestLoading } =
+    useStore();
   const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: () => logoutUserFn(),
-    onMutate(variables) {
-      store.setRequestLoading(true);
+    onMutate() {
+      setRequestLoading(true);
     },
     onSuccess: () => {
-      store.setRequestLoading(false);
-      store.logoutUser();
+      setRequestLoading(false);
+      logoutUser();
       toast.success("Logout successful");
-      console.log("Logout successful");
       navigate("/");
     },
     onError: (error: any) => {
-      store.setRequestLoading(false);
+      setRequestLoading(false);
       toast.error(
         error.response?.data?.title || "Logout failed. Please try again."
       );
       console.error("Logout failed:", error);
     },
   });
+
   const handleSubmit = () => {
     mutation.mutate();
   };
+
+  useEffect(() => {
+    if (token && !authUser) {
+      getAuthUser()
+        .then((user) => {
+          setAuthUser(user, token);
+        })
+        .catch((error) => {
+          console.error("Error fetching user:", error);
+        });
+    }
+  }, [token, authUser, setAuthUser]);
+
+  if (!authUser) {
+    return <div>Please log in</div>;
+  }
   return (
     <div className="flex items-center justify-end p-4">
       <div className="flex items-center gap-4 w-auto p-2 bg-[#262626] rounded-full">

@@ -12,9 +12,10 @@ import { TypeOf } from "zod";
 import { TaskCreate } from "../../api/types";
 import Select from "react-select";
 import { useLabelsStore } from "../../store/labels";
-import { useTaskLabelsStore } from "../../store/taskLabels";
 import { ButtonDialog } from "../../components/ButtonDialog";
-
+import { Button, Dialog, DialogContent } from "@mui/material";
+import AddTaskAttachment from "../TaskAttachment/addTaskAttachment";
+import AddIcon from "@mui/icons-material/Add";
 const taskSchema = object({
   title: string().min(1, "Title is required"),
   description: string().min(1, "Description is required"),
@@ -25,19 +26,24 @@ const taskSchema = object({
 
 export type TaskInput = TypeOf<typeof taskSchema>;
 
-const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
+const AddTask = ({
+  handleCloseDialog,
+  handleOnSuccess,
+}: {
+  handleCloseDialog: () => void;
+  handleOnSuccess: () => void;
+}) => {
   const { createTask } = useTaskStore();
   const user = useStore();
   const store = useStore();
   const { categories, getCategories } = useCategoryStore();
-  const { createTaskLabels } = useTaskLabelsStore();
   const { labels, getLabels } = useLabelsStore();
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
 
   useEffect(() => {
     getCategories();
     getLabels();
-  }, []);
+  }, [getCategories, getLabels]);
 
   const methods = useForm<TaskInput>({
     resolver: zodResolver(taskSchema),
@@ -46,31 +52,17 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
     mutationFn: createTask,
     onMutate: async (newTask) => {
       console.log("Mutating with newTask:", newTask);
-      try {
-        if (newTask.labels && newTask.labels.length > 0) {
-          const taskLabelsData = newTask.labels.map((labelId) => ({
-            taskId: 4, //chua la cai task moi tao sua be
-            labelId,
-            labelName: labels.find((label) => label.id === labelId)?.name || "",
-          }));
-
-          for (const taskLabel of taskLabelsData) {
-            await createTaskLabels(taskLabel);
-          }
-          toast.success("Task labels assigned successfully");
-        }
-      } catch (error) {
-        toast.error("Failed to assigned task labels.");
-      }
       store.setRequestLoading(true);
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       store.setRequestLoading(false);
+      handleOnSuccess();
       toast.success("Task created successfully");
       handleCloseDialog();
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
+      console.log("error", error);
       toast.error(error.response?.data || "Create task failed. Try again.");
     },
   });
@@ -87,10 +79,11 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
       reset();
       setSelectedLabels([]);
     }
-  }, [isSubmitSuccessful]);
+  }, [isSubmitSuccessful, reset]);
 
   const onSubmitHandler: SubmitHandler<TaskInput> = (values) => {
     const newTask: TaskCreate = {
+      id: 0,
       title: values.title,
       description: values.description,
       userId: Number(user?.authUser?.id),
@@ -100,7 +93,6 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
     };
     mutation.mutate(newTask);
   };
-
   return (
     <div className="w-[460px] max-w-full p-2">
       <h3 className="text-2xl font-semibold text-center mb-6">
@@ -130,6 +122,7 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
           {errors.categoryId && (
             <p className="text-red-500 text-sm">{errors.categoryId.message}</p>
           )}
+
           <label className="block font-medium text-gray-700">Labels</label>
           <Select
             isMulti
@@ -155,7 +148,8 @@ const AddTask = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
               Completed
             </label>
           </div>
-
+          {/* add task cùng với add attachment */}
+          {/* <AddTaskAttachment Id={2} handleCloseDialog={handleCloseDialog} /> */}
           <div className="flex justify-end space-x-3 mt-5">
             <ButtonDialog
               loading={false}

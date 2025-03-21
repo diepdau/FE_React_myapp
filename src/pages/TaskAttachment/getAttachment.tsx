@@ -62,7 +62,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       editable: true,
     },
     {
-      field: "UploadedAt",
+      field: "uploadedAt",
       headerName: "UploadedAt",
       width: 130,
       type: "dateTime",
@@ -104,10 +104,13 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       await Promise.all(selectedRows.map((id) => deleteTaskAttachments(id)));
       toast.success("Task attachment deleted successfully!");
       setSelectedRows([]);
+      handleSuccess();
       setDeleteDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
-      toast.error("Failed to delete task attachment.");
+      toast.error(
+        error?.response.data.message || "Failed to delete task attachment."
+      );
     }
   };
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -117,7 +120,9 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-
+  const handleSuccess = () => {
+    getTaskAttachmentsByTaskId(taskId);
+  };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   return (
     <Paper className="p-4">
@@ -145,6 +150,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
           <AddTaskAttachment
             Id={taskId}
             handleCloseDialog={handleCloseDialog}
+            handleOnSuccess={handleSuccess}
           />
         </DialogContent>
       </Dialog>

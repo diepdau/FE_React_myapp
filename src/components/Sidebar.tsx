@@ -24,7 +24,7 @@ export default function Sidebar({ children }: { children: ReactNode }) {
 
   return (
     <aside className="relative flex flex-col h-full bg-[#d6e2d4] text-black min-h-[100vh]">
-      <Link to="/" className="flex items-center m-4 gap-2">
+      <div className="flex items-center m-4 gap-2">
         <img src={logo2} className="w-[49px]  object-cover flex-shrink-0" />
         <span
           className={`text-[#111111] overflow-hidden transition-all ${
@@ -33,7 +33,7 @@ export default function Sidebar({ children }: { children: ReactNode }) {
         >
           MY-TASK
         </span>
-      </Link>
+      </div>
       <button
         onClick={() => setExpanded((curr) => !curr)}
         className="absolute hidden top-6 right-[-17px] -translate-y-1/2 p-1 rounded-lg self-end"
