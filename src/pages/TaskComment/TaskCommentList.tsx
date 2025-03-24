@@ -1,18 +1,22 @@
 import React, { useState } from "react";
-import { useTaskCommentsByTaskId, useDeleteTaskComment } from "../../hooks/useTaskComments"; 
+import {
+  useTaskCommentsByTaskId,
+  useDeleteTaskComment,
+} from "../../hooks/useTaskComments";
 import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
-import AddTaskComment from "./AddTaskComments";
 import { Dialog, DialogContent } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import AddIcon from "@mui/icons-material/Add";
+import AddTaskComments from "./AddTaskComments";
 const TaskCommentList = ({ taskId }: { taskId: number }) => {
-  const { data: taskComments = [], isLoading } = useTaskCommentsByTaskId(taskId); 
-  const deleteTaskCommentMutation = useDeleteTaskComment(); 
+  const { data: taskComments = [], isLoading } =
+    useTaskCommentsByTaskId(taskId);
+  const deleteTaskCommentMutation = useDeleteTaskComment();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const handleDeleteConfirm = async () => {
@@ -21,7 +25,9 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       return;
     }
     try {
-      await Promise.all(selectedRows.map((id) => deleteTaskCommentMutation.mutateAsync(id)));
+      await Promise.all(
+        selectedRows.map((id) => deleteTaskCommentMutation.mutateAsync(id))
+      );
       toast.success("Task comment deleted successfully!");
       setSelectedRows([]);
       setDeleteDialogOpen(false);
@@ -102,10 +108,7 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       </div>
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogContent>
-          <AddTaskComment
-            Id={taskId}
-            handleCloseDialog={handleCloseDialog}
-          />
+          <AddTaskComments Id={taskId} handleCloseDialog={handleCloseDialog} />
         </DialogContent>
       </Dialog>
       <ConfirmDialog
@@ -123,6 +126,7 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
         onRowSelectionModelChange={(newSelection) =>
           setSelectedRows(newSelection as number[])
         }
+        loading={isLoading}
         sx={{ border: 0 }}
       />
     </Paper>

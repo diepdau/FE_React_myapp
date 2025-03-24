@@ -8,7 +8,6 @@ type Store = {
   setAuthUser: (user: IUser | null, token?: string | null) => void;
   logoutUser: () => void;
   setRequestLoading: (isLoading: boolean) => void;
-  loginSuccess: boolean;
 };
 const useStore = create<Store>((set) => {
   const token = localStorage.getItem("AccessToken");
@@ -22,7 +21,6 @@ const useStore = create<Store>((set) => {
     authUser,
     token,
     requestLoading: false,
-    loginSuccess: false,
     setAuthUser: (user, token) => {
       if (token) {
         localStorage.setItem("AccessToken", token);
@@ -31,7 +29,6 @@ const useStore = create<Store>((set) => {
         ...state,
         authUser: user,
         token: token,
-        loginSuccess: true,
       }));
     },
     logoutUser: async () => {

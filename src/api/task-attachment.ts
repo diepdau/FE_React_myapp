@@ -45,3 +45,22 @@ export async function downloadFileTaskAttachments(
   link.click();
   link.remove();
 }
+
+// export async function GetUrlView(  id: any
+// ): Promise<void>{
+//   fetch(`/api/taskattachments/${id}`)
+//   .then(response => response.json())
+//   .then(data => {
+//     data.forEach(attachment => {
+//       console.log("File URL:", attachment.fileUrl);
+
+//       const imgElement = document.createElement('img');
+//       imgElement.src = attachment.fileUrl;
+//       document.body.appendChild(imgElement);
+//     });
+//   })
+//   .catch(error => {
+//     console.error('Error fetching task attachments:', error);
+//   });
+
+// }

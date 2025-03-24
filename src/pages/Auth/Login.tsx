@@ -11,19 +11,19 @@ import { useMutation } from "@tanstack/react-query";
 import Hello from "../../asset/hello.png";
 import { toast } from "react-toastify";
 const loginSchema = object({
-  email: string(),
-  // .min(1, { message: "Please enter an email address" })
-  // .email({ message: "Please enter a valid email address" }),
-  password: string(),
-  // .min(8, { message: "Password must be at least 8 characters" })
-  // .regex(/[A-Z]/, {
-  //   message: "Password must contain at least one uppercase letter",
-  // })
-  // .regex(/\d/, { message: "Password must contain at least one number" })
-  // .regex(/[\W_]/, {
-  //   message: "Password must contain at least one special character",
-  // })
-  // .nonempty({ message: "Please enter a password" }),
+  email: string()
+    .min(1, { message: "Please enter an email address" })
+    .email({ message: "Please enter a valid email address" }),
+  password: string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/[A-Z]/, {
+      message: "Password must contain at least one uppercase letter",
+    })
+    .regex(/\d/, { message: "Password must contain at least one number" })
+    .regex(/[\W_]/, {
+      message: "Password must contain at least one special character",
+    })
+    .nonempty({ message: "Please enter a password" }),
 });
 
 export type LoginInput = TypeOf<typeof loginSchema>;
@@ -43,10 +43,8 @@ const Login = () => {
     onSuccess: (data) => {
       store.setRequestLoading(false);
       store.setAuthUser(data.user, data.token);
-      if (store.loginSuccess) {
-        toast.success("Login successful");
-        navigate("/dashboard");
-      }
+      toast.success("Login successful");
+      navigate("/dashboard");
     },
     onError: (error: any) => {
       store.setRequestLoading(false);
@@ -67,13 +65,13 @@ const Login = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  // const onSubmitHandler: SubmitHandler<LoginInput> = (values) => {
-  //   mutation.mutate(values);
-  // };
-  const onSubmitHandler: SubmitHandler<LoginInput> = () => {
-    mutation.mutate({ email: "admin@example.com", password: "Admin123@" });
-    // mutation.mutate({ email: "Diep12345@mail.com", password: "Diep12345@" });
+  const onSubmitHandler: SubmitHandler<LoginInput> = (values) => {
+    mutation.mutate(values);
   };
+  // const onSubmitHandler: SubmitHandler<LoginInput> = () => {
+  //   mutation.mutate({ email: "admin@example.com", password: "Admin123@" });
+  //    mutation.mutate({ email: "Diep12345@mail.com", password: "Diep12345@" });
+  // };
   return (
     <div className="w-full h-screen flex items-center justify-center">
       <FormProvider {...methods}>

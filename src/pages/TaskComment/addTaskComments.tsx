@@ -12,7 +12,7 @@ const taskCommentsSchema = object({
   content: string().min(1, { message: "Please enter an content task comment" }),
 });
 export type TaskCommentInput = TypeOf<typeof taskCommentsSchema>;
-const AddTaskComment = ({
+const AddTaskComments = ({
   Id,
   handleCloseDialog,
 }: {
@@ -24,7 +24,7 @@ const AddTaskComment = ({
   const methods = useForm<TaskCommentInput>({
     resolver: zodResolver(taskCommentsSchema),
   });
-  
+
   const {
     reset,
     handleSubmit,
@@ -41,9 +41,9 @@ const AddTaskComment = ({
   const onSubmitHandler: SubmitHandler<TaskCommentInput> = async (values) => {
     try {
       await createTaskCommentMutation.mutateAsync({
-      taskId: Id,
-      userId: user.authUser?.id || 0, 
-      content: values.content,
+        taskId: Id,
+        userId: user.authUser?.id || 0,
+        content: values.content,
       });
       toast.success("Task comment created successfully!");
       methods.reset();
@@ -78,4 +78,4 @@ const AddTaskComment = ({
   );
 };
 
-export default AddTaskComment;
+export default AddTaskComments;

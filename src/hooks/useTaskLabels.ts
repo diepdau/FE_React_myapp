@@ -5,7 +5,7 @@ import {
   deleteTaskLabels,
   getTaskLabelsByTaskId,
 } from "../api/task-labels";
-import { TaskLabels } from "../api/types";
+import { toast } from "react-toastify";
 
 export const useTaskLabels = () => {
   return useQuery({
@@ -18,7 +18,7 @@ export const useTaskLabelsByTaskId = (taskId: number) => {
   return useQuery({
     queryKey: ["taskLabels", taskId],
     queryFn: () => getTaskLabelsByTaskId(taskId),
-    enabled: !!taskId, 
+    enabled: !!taskId,
   });
 };
 
@@ -28,7 +28,7 @@ export const useCreateTaskLabel = () => {
   return useMutation({
     mutationFn: createTaskLabels,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["taskLabels"] }); 
+      queryClient.invalidateQueries({ queryKey: ["taskLabels"] });
     },
   });
 };
@@ -37,11 +37,17 @@ export const useDeleteTaskLabel = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ taskId, labelId }: { taskId: number; labelId: number }) => {
+    mutationFn: async ({
+      taskId,
+      labelId,
+    }: {
+      taskId: number;
+      labelId: number;
+    }) => {
       await deleteTaskLabels(taskId, labelId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["taskLabels"] }); 
+      queryClient.invalidateQueries({ queryKey: ["taskLabels"] });
     },
   });
 };

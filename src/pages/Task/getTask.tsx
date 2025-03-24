@@ -23,16 +23,17 @@ const TaskDetail = () => {
         <p className="text-black-600 font-semibold text-xl">{task.title}</p>
         <p className="mt-3">Description: {task.description}</p>
         <p className="mt-3 text-gray-700 flex items-center gap-2">
-          <span >Status:</span>  
+          <span>Status:</span>
           {task.isCompleted ? (
             <AssignmentTurnedInIcon className="text-green-600" />
           ) : (
             <HourglassEmptyIcon className="text-yellow-600" />
           )}
-          <span className={task.isCompleted ? "text-green-600" : "text-yellow-600"}>
+          <span
+            className={task.isCompleted ? "text-green-600" : "text-yellow-600"}
+          >
             {task.isCompleted ? "Completed" : "Pending"}
           </span>
-          
         </p>
         <p className="mt-3">Category: {task.categoryName}</p>
         <p className="mt-3">

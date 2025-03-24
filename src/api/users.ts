@@ -10,7 +10,5 @@ export async function getAuthUser() {
     return response.data;
   } catch (error) {
     console.error("Error authenticated user:", error);
-    throw error; 
   }
 }
-

@@ -1,4 +1,4 @@
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import {
   DataGrid,
   GridRowModel,
@@ -8,9 +8,13 @@ import {
 } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { useTasks, useUpdateTask, useDeleteTask } from "../../hooks/useTasks";
-import { useCategories} from "../../hooks/useCategory";
-import { useLabels} from "../../hooks/useLabels";
-import { useCreateTaskLabel, useDeleteTaskLabel, useTaskLabels} from "../../hooks/useTaskLabels";
+import { useCategories } from "../../hooks/useCategory";
+import { useLabels } from "../../hooks/useLabels";
+import {
+  useCreateTaskLabel,
+  useDeleteTaskLabel,
+  useTaskLabels,
+} from "../../hooks/useTaskLabels";
 
 import { toast } from "react-toastify";
 import {
@@ -34,16 +38,15 @@ import { green, red } from "@mui/material/colors";
 import AddIcon from "@mui/icons-material/Add";
 import { ButtonDialog } from "../../components/ButtonDialog";
 import SaveIcon from "@mui/icons-material/Save";
-import WysiwygIcon from '@mui/icons-material/Wysiwyg';
+import WysiwygIcon from "@mui/icons-material/Wysiwyg";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
 import { useQueryClient } from "@tanstack/react-query";
 
-
 export default function TaskList() {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const { data: tasks, isLoading } = useTasks();
+  const { data: tasks, isLoading, error } = useTasks();
   const { data: categories } = useCategories();
   const { data: labels } = useLabels();
   const { data: taskLabels } = useTaskLabels();
@@ -55,7 +58,10 @@ export default function TaskList() {
   const navigate = useNavigate();
   const [openLabelDialog, setOpenLabelDialog] = useState(false);
   const [editedRows, setEditedRows] = useState<{ [key: number]: any }>({});
-  const [taskToDelete, setTaskToDelete] = useState<{ id: number; title: string } | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<boolean | null>(null);
@@ -67,12 +73,18 @@ export default function TaskList() {
   const { mutateAsync: deleteTaskLabel } = useDeleteTaskLabel();
   const filteredTasks = useMemo(() => {
     return tasks?.filter((task) => {
-      const categoryMatch = selectedCategory ? task.categoryId === Number(selectedCategory) : true;
-      const labelMatch = selectedLabels.length > 0
-      ? selectedLabels.every(selectedLabelName => task.labels?.includes(selectedLabelName))
-      : true;
-        const statusMatch = selectedStatus !== null ? task.isCompleted === selectedStatus : true;
-  
+      const categoryMatch = selectedCategory
+        ? task.categoryId === Number(selectedCategory)
+        : true;
+      const labelMatch =
+        selectedLabels.length > 0
+          ? selectedLabels.every((selectedLabelName) =>
+              task.labels?.includes(selectedLabelName)
+            )
+          : true;
+      const statusMatch =
+        selectedStatus !== null ? task.isCompleted === selectedStatus : true;
+
       return categoryMatch && labelMatch && statusMatch;
     });
   }, [tasks, selectedCategory, selectedLabels, selectedStatus]);
@@ -84,9 +96,13 @@ export default function TaskList() {
 
   const handleSaveClick = async () => {
     if (editingTaskId === null) return;
-    await updateTaskMutation.mutateAsync(editedRows[editingTaskId]); 
-    setEditingTaskId(null);
-    setEditedRows({});
+    try {
+      await updateTaskMutation.mutateAsync(editedRows[editingTaskId]);
+      setEditingTaskId(null);
+      setEditedRows({});
+    } catch (error) {
+      toast.error("Failed to update task.");
+    }
   };
 
   const processRowUpdate = (newRow: GridRowModel) => {
@@ -95,10 +111,14 @@ export default function TaskList() {
   };
   const handleDeleteConfirm = async () => {
     if (!taskToDelete) return;
-    await deleteTaskMutation.mutateAsync(taskToDelete.id); 
-    setTaskToDelete(null);
-    handleSuccess();
-    setDeleteDialogOpen(false);
+    try {
+      await deleteTaskMutation.mutateAsync(taskToDelete.id);
+      setTaskToDelete(null);
+      handleSuccess();
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
   const [openDialog, setOpenDialog] = useState(false);
   const handleOpenDialog = () => {
@@ -107,42 +127,52 @@ export default function TaskList() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-  const handleOpenLabelDialog = (taskId: number, currentLabelNames: string[]) => {
+  const handleOpenLabelDialog = (
+    taskId: number,
+    currentLabelNames: string[]
+  ) => {
     setEditingTaskId(taskId);
     const selectedLabelIds = labels
-    ? labels.filter(label => currentLabelNames.includes(label.name)).map(label => label.id)
-    : []; 
+      ? labels
+          .filter((label) => currentLabelNames.includes(label.name))
+          .map((label) => label.id)
+      : [];
     setSelectedTaskLabels(selectedLabelIds);
     setOpenLabelDialog(true);
   };
-  
+
   const handleCloseLabelDialog = () => {
     setOpenLabelDialog(false);
     setEditingTaskId(null);
     setSelectedTaskLabels([]);
   };
-  
+
   const handleLabelSelectionChange = (selectedOptions: any) => {
     setSelectedTaskLabels(selectedOptions.map((opt: any) => opt.value));
   };
   const handleSaveLabels = async () => {
     if (editingTaskId === null) return;
-    const originalLabels = (tasks?.find(task => task.id === editingTaskId)?.labels || [])
-      .map(label => {
-        if (typeof label === "number") return label; 
-        const foundLabel = labels?.find(l => l.name === label);
+    const originalLabels = (
+      tasks?.find((task) => task.id === editingTaskId)?.labels || []
+    )
+      .map((label) => {
+        if (typeof label === "number") return label;
+        const foundLabel = labels?.find((l) => l.name === label);
         return foundLabel ? foundLabel.id : NaN;
       })
-      .filter(id => !isNaN(id)); 
-  
+      .filter((id) => !isNaN(id));
+
     const newLabels = selectedTaskLabels.map(Number);
-    const labelsToAdd = newLabels.filter(id => !originalLabels.includes(id));
-    const labelsToRemove = originalLabels.filter(id => !newLabels.includes(id));
-  
+    const labelsToAdd = newLabels.filter((id) => !originalLabels.includes(id));
+    const labelsToRemove = originalLabels.filter(
+      (id) => !newLabels.includes(id)
+    );
+
     try {
       await Promise.all(
         labelsToAdd.map(async (labelId) => {
-          const labelName = labels?.find(label => label.id === labelId)?.name || "";
+          const labelName =
+            labels?.find((label) => label.id === labelId)?.name || "";
           await createTaskLabel({ taskId: editingTaskId, labelId, labelName });
         })
       );
@@ -151,9 +181,9 @@ export default function TaskList() {
           await deleteTaskLabel({ taskId: editingTaskId, labelId });
         })
       );
-      toast.success("Labels updated successfully!");
       handleSuccess();
       handleCloseLabelDialog();
+      toast.success("Labels updated successfully!");
     } catch (error) {
       toast.error("Failed to update labels.");
     }
@@ -204,7 +234,9 @@ export default function TaskList() {
       width: 80,
       editable: true,
       renderCell: (params: GridRenderCellParams) => {
-        const category = categories?.find((c) => c.id === params.row.categoryId);
+        const category = categories?.find(
+          (c) => c.id === params.row.categoryId
+        );
         return category ? category.name : "Unknown";
       },
       renderEditCell: (params) => (
@@ -242,7 +274,8 @@ export default function TaskList() {
       width: 350,
       renderCell: (params: GridRenderCellParams) => {
         const labelIds = params.row.labels || [];
-        const taskLabels = labels?.filter((label) => labelIds.includes(label.name)) || []; 
+        const taskLabels =
+          labels?.filter((label) => labelIds.includes(label.name)) || [];
         return (
           <div
             style={{
@@ -255,7 +288,7 @@ export default function TaskList() {
                 <span
                   key={index}
                   style={{
-                    marginRight:"6px",
+                    marginRight: "6px",
                     backgroundColor: getRandomPastelColor(),
                     borderRadius: "12px",
                     padding: "5px 10px",
@@ -290,14 +323,17 @@ export default function TaskList() {
                 color="primary"
               />,
             ]
-            : [<GridActionsCellItem
-              icon={<WysiwygIcon style={{ color: "blue" }} />} 
-              label="View"
-              onClick={() => navigate(`/tasks/${row.id}`)}
-              color="primary"
-            />,
+          : [
               <GridActionsCellItem
-                icon={<DriveFileRenameOutlineIcon style={{ color: "orange" }} />}
+                icon={<WysiwygIcon style={{ color: "blue" }} />}
+                label="View"
+                onClick={() => navigate(`/tasks/${row.id}`)}
+                color="primary"
+              />,
+              <GridActionsCellItem
+                icon={
+                  <DriveFileRenameOutlineIcon style={{ color: "orange" }} />
+                }
                 label="Edit"
                 onClick={() => handleEditClick(row.id, row)}
                 color="primary"
@@ -305,7 +341,8 @@ export default function TaskList() {
               <GridActionsCellItem
                 icon={<DeleteIcon style={{ color: "red" }} />}
                 label="Delete"
-                onClick={() => { setTaskToDelete({id: row.id, title: row.title });
+                onClick={() => {
+                  setTaskToDelete({ id: row.id, title: row.title });
                   setDeleteDialogOpen(true);
                 }}
                 color="inherit"
@@ -313,7 +350,6 @@ export default function TaskList() {
             ];
       },
     },
-
   ];
   const getRandomPastelColor = () => {
     const r = Math.floor(Math.random() * 127 + 127);
@@ -322,8 +358,12 @@ export default function TaskList() {
     return `rgb(${r}, ${g}, ${b})`;
   };
   return (
-    <Paper sx={{ width: "100%", padding: "1rem" }}>
-        <p className="text-2xl">Task List</p>
+    <>
+      {error ? (
+        <p>Error loading task!</p>
+      ) : (
+        <Paper sx={{ width: "100%", padding: "1rem" }}>
+          <p className="text-2xl">Task List</p>
           <Dialog open={openDialog} onClose={handleCloseDialog}>
             <DialogContent>
               <AddTask
@@ -344,138 +384,159 @@ export default function TaskList() {
             <DialogContent>
               <h3 className="text-lg font-semibold mb-3">Edit Labels</h3>
               <SelectReact
-            isMulti
-            options={labels?.map(label => ({ value: label.id, label: label.name }))}
-            value={selectedTaskLabels.map(id => {
-              const label = labels?.find(label => label.id === id);
-              return label ? { value: label.id, label: label.name } : null;
-            }).filter(Boolean)}
-            onChange={handleLabelSelectionChange}
-            className="basic-multi-select w-full"
-            classNamePrefix="select"
-            placeholder="Select Labels"
-            menuPortalTarget={document.body}
-            styles={{
-              menuPortal: base => ({ ...base, zIndex: 9999 }),
-            }}
-          />
-          <div className="flex justify-end space-x-3">
-                      <ButtonDialog
-                        loading={false}
-                        btnColor="bg-[#000000] hover:border-gray-100"
-                        showCancel={true}
-                        onCancel={handleCloseLabelDialog}
-                        onClick={handleSaveLabels}
-                      >
-                        Add
-                      </ButtonDialog>
-                    </div>
-        </DialogContent>
-      </Dialog>
-      <div className="flex items-start space-x-3 mb-4">
-        <Button
-          variant="contained"
-          onClick={handleOpenDialog}
-          startIcon={<AddIcon />}
-          sx={{
-            textTransform: "none",
-            borderRadius: "12px",
-            backgroundColor: "#ff9800",
-            color: "white",
-            "&:hover": {
-              backgroundColor: "#f57c00",
-            },
-          }}
-        >
-          Add
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={showFilters ? <CloseIcon /> : <FilterListIcon />}
-          onClick={() => {
-            if (showFilters) {
-              setSelectedCategory(null);
-              setSelectedStatus(null);
-              setSelectedLabels([]);
-            }
-            setShowFilters(!showFilters);
-          }}
-          sx={{
-            textTransform: "none",borderRadius: "12px",
-            backgroundColor: "#1976d2",
-            color: "white",
-            "&:hover": {
-              backgroundColor: "#115293",
-            },
-          }}
-        >
-          {showFilters ? "Close" : "Filter"}
-        </Button>
-
-        {showFilters && (
-          <div className="flex space-x-3 items-start">
-          <Select
-            value={selectedCategory || ""}
-            onChange={(e) => setSelectedCategory(e.target.value || null)}
-            displayEmpty
-            sx={{ minWidth: 150, height: 40 }} 
-          >
-            <MenuItem value="">All Categories</MenuItem>
-            {categories?.map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </Select>
-          
-          <Select
-            value={selectedStatus === null ? "" : selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value === "" ? null : e.target.value === "true")}
-            displayEmpty
-            sx={{ minWidth: 150, height: 40 }} 
-          >
-            <MenuItem value="">All Status</MenuItem>
-            <MenuItem value="true">Completed</MenuItem>
-            <MenuItem value="false">Not Completed</MenuItem>
-          </Select>
-        
-          <div className="relative w-64">
-            <SelectReact
-              isMulti
-              options={labels?.map(label => ({ value: label.name, label: label.name }))}
-              value={selectedLabels.map(name => ({ value: name, label: name }))}
-              onChange={(selected) => setSelectedLabels(selected.map(opt => opt.value))}
-              placeholder="Filter by Labels"
-              className="basic-multi-select w-full"
-              styles={{
-                control: (provided) => ({
-                  ...provided,
-                  minHeight: 40,
-                  overflowY: "auto", 
-                  maxHeight: "none" 
-                }),
+                isMulti
+                options={labels?.map((label) => ({
+                  value: label.id,
+                  label: label.name,
+                }))}
+                value={selectedTaskLabels
+                  .map((id) => {
+                    const label = labels?.find((label) => label.id === id);
+                    return label
+                      ? { value: label.id, label: label.name }
+                      : null;
+                  })
+                  .filter(Boolean)}
+                onChange={handleLabelSelectionChange}
+                className="basic-multi-select w-full"
+                classNamePrefix="select"
+                placeholder="Select Labels"
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                }}
+              />
+              <div className="flex justify-end space-x-3">
+                <ButtonDialog
+                  loading={false}
+                  btnColor="bg-[#000000] hover:border-gray-100"
+                  showCancel={true}
+                  onCancel={handleCloseLabelDialog}
+                  onClick={handleSaveLabels}
+                >
+                  Add
+                </ButtonDialog>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <div className="flex items-start space-x-3 mb-4">
+            <Button
+              variant="contained"
+              onClick={handleOpenDialog}
+              startIcon={<AddIcon />}
+              sx={{
+                textTransform: "none",
+                borderRadius: "12px",
+                backgroundColor: "#ff9800",
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "#f57c00",
+                },
               }}
-            />
+            >
+              Add
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={showFilters ? <CloseIcon /> : <FilterListIcon />}
+              onClick={() => {
+                if (showFilters) {
+                  setSelectedCategory(null);
+                  setSelectedStatus(null);
+                  setSelectedLabels([]);
+                }
+                setShowFilters(!showFilters);
+              }}
+              sx={{
+                textTransform: "none",
+                borderRadius: "12px",
+                backgroundColor: "#1976d2",
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "#115293",
+                },
+              }}
+            >
+              {showFilters ? "Close" : "Filter"}
+            </Button>
+
+            {showFilters && (
+              <div className="flex space-x-3 items-start">
+                <Select
+                  value={selectedCategory || ""}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  displayEmpty
+                  sx={{ minWidth: 150, height: 40 }}
+                >
+                  <MenuItem value="">All Categories</MenuItem>
+                  {categories?.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+
+                <Select
+                  value={selectedStatus === null ? "" : selectedStatus}
+                  onChange={(e) =>
+                    setSelectedStatus(
+                      e.target.value === "" ? null : e.target.value === "true"
+                    )
+                  }
+                  displayEmpty
+                  sx={{ minWidth: 150, height: 40 }}
+                >
+                  <MenuItem value="">All Status</MenuItem>
+                  <MenuItem value="true">Completed</MenuItem>
+                  <MenuItem value="false">Not Completed</MenuItem>
+                </Select>
+
+                <div className="relative w-64">
+                  <SelectReact
+                    isMulti
+                    options={labels?.map((label) => ({
+                      value: label.name,
+                      label: label.name,
+                    }))}
+                    value={selectedLabels.map((name) => ({
+                      value: name,
+                      label: name,
+                    }))}
+                    onChange={(selected) =>
+                      setSelectedLabels(selected.map((opt) => opt.value))
+                    }
+                    placeholder="Filter by Labels"
+                    className="basic-multi-select w-full"
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: 40,
+                        overflowY: "auto",
+                        maxHeight: "none",
+                      }),
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-        )}
-      </div>
 
-
-      <DataGrid
-        loading={isLoading}
-        rows={filteredTasks}
-        columns={columns}
-        checkboxSelection
-        processRowUpdate={processRowUpdate}
-      />
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Alert"
-        description={`Are you sure you want to delete "${taskToDelete?.title}"?`}
-      />
-    </Paper>
+          <DataGrid
+            loading={isLoading}
+            rows={filteredTasks}
+            columns={columns}
+            checkboxSelection
+            processRowUpdate={processRowUpdate}
+          />
+          <ConfirmDialog
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+            onConfirm={handleDeleteConfirm}
+            title="Alert"
+            description={`Are you sure you want to delete "${taskToDelete?.title}"?`}
+          />
+        </Paper>
+      )}
+    </>
   );
 }

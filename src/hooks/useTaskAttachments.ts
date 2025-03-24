@@ -10,7 +10,7 @@ export const useTaskAttachmentsByTaskId = (taskId: number) => {
   return useQuery({
     queryKey: ["taskAttachments", taskId],
     queryFn: () => getTaskAttachmentsByTaskId(taskId),
-    enabled: !!taskId, 
+    enabled: !!taskId,
   });
 };
 
@@ -20,7 +20,7 @@ export const useCreateTaskAttachment = () => {
     mutationFn: ({ taskId, files }: { taskId: number; files: File[] }) =>
       createTaskAttachments(taskId, files),
     onSuccess: (_, { taskId }) => {
-      queryClient.invalidateQueries({ queryKey: ["taskAttachments", taskId] }); 
+      queryClient.invalidateQueries({ queryKey: ["taskAttachments", taskId] });
     },
   });
 };
@@ -30,15 +30,15 @@ export const useDeleteTaskAttachment = () => {
   return useMutation({
     mutationFn: (attachmentId: number) => deleteTaskAttachments(attachmentId),
     onSuccess: (_, attachmentId) => {
-      queryClient.invalidateQueries({ queryKey: ["taskAttachments"] }); 
+      queryClient.invalidateQueries({ queryKey: ["taskAttachments"] });
     },
   });
 };
 
 export const useDownloadTaskAttachment = () => {
-    return useMutation({
-      mutationFn: async (fileName: string) => {
-        await downloadFileTaskAttachments(fileName);
-      },
-    });
-  };
+  return useMutation({
+    mutationFn: async (fileName: string) => {
+      await downloadFileTaskAttachments(fileName);
+    },
+  });
+};

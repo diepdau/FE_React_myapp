@@ -1,21 +1,21 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCreateTask } from "../../hooks/useTasks";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { object, string, number, boolean, array } from "zod";
-import { toast } from "react-toastify";
 import useStore from "../../store/auth";
 import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
 import { TaskCreate } from "../../api/types";
 import Select from "react-select";
-import { useCategories } from "../../hooks/useCategory"; 
+import { useCategories } from "../../hooks/useCategory";
 import { useLabels } from "../../hooks/useLabels";
 import { ButtonDialog } from "../../components/ButtonDialog";
+import { toast } from "react-toastify";
 const taskSchema = object({
   title: string().min(1, "Title is required"),
   description: string().min(1, "Description is required"),
-  categoryId: number().min(1, "Category is required"),
+  categoryId: number().min(1, "Required"),
   isCompleted: boolean().default(false).optional(),
   labels: array(number()).min(1, "At least one label is required"),
 });
@@ -52,8 +52,7 @@ const AddTask = ({
     }
   }, [isSubmitSuccessful, reset]);
 
-  
-  const onSubmitHandler: SubmitHandler<TaskInput> = (values) => {
+  const onSubmitHandler: SubmitHandler<TaskInput> = async (values) => {
     const newTask: TaskCreate = {
       id: 0,
       title: values.title,
@@ -63,18 +62,22 @@ const AddTask = ({
       isCompleted: values.isCompleted || false,
       labels: selectedLabels.map((label) => Number(label)),
     };
-    
-    createTaskMutation.mutate(newTask, {
-      onSettled: () => {
-        handleOnSuccess();
-        handleCloseDialog();
-      },
-    });
+
+    try {
+      await createTaskMutation.mutate(newTask, {
+        onSettled: () => {
+          handleOnSuccess();
+          handleCloseDialog();
+        },
+      });
+    } catch (error: any) {
+      toast.error(error.response?.data || "Failed to create task.");
+    }
   };
   useEffect(() => {
-    setValue("labels", selectedLabels); 
+    setValue("labels", selectedLabels);
   }, [selectedLabels, setValue]);
-  
+
   return (
     <div className="w-[460px] max-w-full p-2">
       <h3 className="text-2xl font-semibold text-center mb-6">
@@ -113,9 +116,11 @@ const AddTask = ({
               label: label.name,
             }))}
             onChange={(selectedOptions) => {
-              const updatedLabels = selectedOptions.map((option) => option.value);
+              const updatedLabels = selectedOptions.map(
+                (option) => option.value
+              );
               setSelectedLabels(updatedLabels);
-              setValue("labels", updatedLabels);  
+              setValue("labels", updatedLabels);
             }}
             className="basic-multi-select rounded-full"
             classNamePrefix="select"
@@ -130,7 +135,7 @@ const AddTask = ({
               Completed
             </label>
           </div>
-          {/* add task cùng với add attachment */}
+          {/* add task với add attachment */}
           {/* <AddTaskAttachment Id={2} handleCloseDialog={handleCloseDialog} /> */}
           <div className="flex justify-end space-x-3 mt-5">
             <ButtonDialog

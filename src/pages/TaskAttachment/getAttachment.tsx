@@ -5,7 +5,11 @@ import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import { Dialog, DialogContent } from "@mui/material";
-import { useTaskAttachmentsByTaskId, useDeleteTaskAttachment,useDownloadTaskAttachment  } from "../../hooks/useTaskAttachments";
+import {
+  useTaskAttachmentsByTaskId,
+  useDeleteTaskAttachment,
+  useDownloadTaskAttachment,
+} from "../../hooks/useTaskAttachments";
 import AddTaskAttachment from "./AddTaskAttachment";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
@@ -15,8 +19,9 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import AddIcon from "@mui/icons-material/Add";
-import TableViewOutlinedIcon from '@mui/icons-material/TableViewOutlined';
+import TableViewOutlinedIcon from "@mui/icons-material/TableViewOutlined";
 import { useQueryClient } from "@tanstack/react-query";
+import PageviewOutlinedIcon from "@mui/icons-material/PageviewOutlined";
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split(".").pop()?.toLowerCase();
   switch (ext) {
@@ -39,7 +44,8 @@ const getFileIcon = (fileName: string) => {
   }
 };
 const TaskAttachment = ({ taskId }: { taskId: number }) => {
-  const { data: taskAttachments = [], isLoading } = useTaskAttachmentsByTaskId(taskId);
+  const { data: taskAttachments = [], isLoading } =
+    useTaskAttachmentsByTaskId(taskId);
   const deleteAttachment = useDeleteTaskAttachment();
   const downloadAttachment = useDownloadTaskAttachment();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
@@ -82,6 +88,18 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       cellClassName: "actions",
       getActions: ({ id, row }) => [
         <GridActionsCellItem
+          icon={<PageviewOutlinedIcon className="text-blue-300" />}
+          label="View"
+          onClick={() => {
+            if (row.fileUrl) {
+              window.open(row.fileUrl, "_blank");
+            } else {
+              console.error("No file URL available");
+            }
+          }}
+          color="primary"
+        />,
+        <GridActionsCellItem
           icon={<DeleteIcon style={{ color: "red" }} />}
           label="Delete"
           onClick={() => {
@@ -104,7 +122,9 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       return;
     }
     try {
-      await Promise.all(selectedRows.map((id) => deleteAttachment.mutateAsync(id)));
+      await Promise.all(
+        selectedRows.map((id) => deleteAttachment.mutateAsync(id))
+      );
       toast.success("Task attachment deleted successfully!");
       setSelectedRows([]);
       setDeleteDialogOpen(false);
@@ -162,7 +182,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
           setSelectedRows(newSelection as number[])
         }
         sx={{ border: 0 }}
-        loading={isLoading} 
+        loading={isLoading}
       />
 
       <ConfirmDialog
