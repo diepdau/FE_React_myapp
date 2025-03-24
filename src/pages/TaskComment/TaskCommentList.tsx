@@ -1,22 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { useTaskCommentsStore } from "../../store/taskComments";
+import React, { useState } from "react";
+import { useTaskCommentsByTaskId, useDeleteTaskComment } from "../../hooks/useTaskComments"; 
 import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
-import AddTaskComment from "./addTaskComments";
+import AddTaskComment from "./AddTaskComments";
 import { Dialog, DialogContent } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import AddIcon from "@mui/icons-material/Add";
 const TaskCommentList = ({ taskId }: { taskId: number }) => {
-  const { taskComments, getTaskCommentsByTaskId, deleteTaskComments } =
-    useTaskCommentsStore();
+  const { data: taskComments = [], isLoading } = useTaskCommentsByTaskId(taskId); 
+  const deleteTaskCommentMutation = useDeleteTaskComment(); 
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  useEffect(() => {
-    getTaskCommentsByTaskId(taskId);
-  }, [taskId]);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const handleDeleteConfirm = async () => {
     if (selectedRows.length === 0) {
@@ -24,11 +21,10 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       return;
     }
     try {
-      await Promise.all(selectedRows.map((id) => deleteTaskComments(id)));
+      await Promise.all(selectedRows.map((id) => deleteTaskCommentMutation.mutateAsync(id)));
       toast.success("Task comment deleted successfully!");
       setSelectedRows([]);
       setDeleteDialogOpen(false);
-      handleOnSuccess();
     } catch (error: any) {
       console.log(error);
       toast.error(
@@ -83,13 +79,10 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       },
     },
   ];
-  const handleOnSuccess = () => {
-    getTaskCommentsByTaskId(taskId);
-  };
   return (
     <Paper className="p-4">
       <div className="flex justify-between items-center mb-6">
-        <p className="text-2xl">Task Comments</p>
+        <p className="text-xl">Task Comments</p>
         <Button
           variant="contained"
           onClick={handleOpenDialog}
@@ -110,9 +103,8 @@ const TaskCommentList = ({ taskId }: { taskId: number }) => {
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogContent>
           <AddTaskComment
-            Id={taskId || 0}
+            Id={taskId}
             handleCloseDialog={handleCloseDialog}
-            handleOnSuccess={handleOnSuccess}
           />
         </DialogContent>
       </Dialog>

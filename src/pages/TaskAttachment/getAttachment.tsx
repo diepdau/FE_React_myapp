@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import { Dialog, DialogContent } from "@mui/material";
-import { useTaskAttachmentsStore } from "../../store/taskAttachments";
-import AddTaskAttachment from "./addTaskAttachment";
+import { useTaskAttachmentsByTaskId, useDeleteTaskAttachment,useDownloadTaskAttachment  } from "../../hooks/useTaskAttachments";
+import AddTaskAttachment from "./AddTaskAttachment";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
-import { downloadFileTaskAttachments } from "../../api/task-attachment";
 import ImageIcon from "@mui/icons-material/Image";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import AddIcon from "@mui/icons-material/Add";
+import TableViewOutlinedIcon from '@mui/icons-material/TableViewOutlined';
+import { useQueryClient } from "@tanstack/react-query";
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split(".").pop()?.toLowerCase();
   switch (ext) {
@@ -30,18 +31,22 @@ const getFileIcon = (fileName: string) => {
     case "doc":
     case "docx":
       return <DescriptionIcon sx={{ color: "blue", marginRight: 1 }} />;
+    case "xls":
+    case "xlsx":
+      return <TableViewOutlinedIcon sx={{ color: "green", marginRight: 1 }} />;
     default:
       return <InsertDriveFileIcon sx={{ color: "#ffa939", marginRight: 1 }} />;
   }
 };
 const TaskAttachment = ({ taskId }: { taskId: number }) => {
-  const { taskAttachments, getTaskAttachmentsByTaskId, deleteTaskAttachments } =
-    useTaskAttachmentsStore();
+  const { data: taskAttachments = [], isLoading } = useTaskAttachmentsByTaskId(taskId);
+  const deleteAttachment = useDeleteTaskAttachment();
+  const downloadAttachment = useDownloadTaskAttachment();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-
-  useEffect(() => {
-    getTaskAttachmentsByTaskId(taskId);
-  }, []);
+  const queryClient = useQueryClient();
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["taskAttachments"] });
+  };
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 70 },
     {
@@ -87,9 +92,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
         <GridActionsCellItem
           icon={<DownloadIcon style={{ color: "orange" }} />}
           label="Download"
-          onClick={() => {
-            downloadFileTaskAttachments(row.fileName);
-          }}
+          onClick={() => downloadAttachment.mutate(row.fileName)}
           color="inherit"
         />,
       ],
@@ -101,10 +104,9 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
       return;
     }
     try {
-      await Promise.all(selectedRows.map((id) => deleteTaskAttachments(id)));
+      await Promise.all(selectedRows.map((id) => deleteAttachment.mutateAsync(id)));
       toast.success("Task attachment deleted successfully!");
       setSelectedRows([]);
-      handleSuccess();
       setDeleteDialogOpen(false);
     } catch (error: any) {
       console.log(error);
@@ -120,14 +122,11 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-  const handleSuccess = () => {
-    getTaskAttachmentsByTaskId(taskId);
-  };
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   return (
     <Paper className="p-4">
       <div className="flex justify-between items-center mb-6">
-        <p className="text-2xl">Task Attachments</p>
+        <p className="text-xl">Task Attachments</p>
         <Button
           variant="contained"
           onClick={handleOpenDialog}
@@ -163,6 +162,7 @@ const TaskAttachment = ({ taskId }: { taskId: number }) => {
           setSelectedRows(newSelection as number[])
         }
         sx={{ border: 0 }}
+        loading={isLoading} 
       />
 
       <ConfirmDialog

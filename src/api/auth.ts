@@ -1,6 +1,6 @@
 import axios from "axios";
-import { LoginInput } from "../pages/login";
-import { RegisterInput } from "../pages/register";
+import { LoginInput } from "../pages/Auth/Login";
+import { RegisterInput } from "../pages/Auth/Register";
 
 const BASE_URL = "https://localhost:7001/api/";
 export const authApi = axios.create({

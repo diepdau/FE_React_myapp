@@ -1,53 +1,30 @@
 import React, { useEffect } from "react";
-import { useTaskCommentsStore } from "../../store/taskComments";
+import { useCreateTaskComment } from "../../hooks/useTaskComments";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { object, string } from "zod";
 import { toast } from "react-toastify";
-import { useMutation } from "@tanstack/react-query";
 import useStore from "../../store/auth";
 import InputField from "../../components/InputField";
 import { TypeOf } from "zod";
-import { TaskComments } from "../../api/types";
 import { ButtonDialog } from "../../components/ButtonDialog";
 const taskCommentsSchema = object({
   content: string().min(1, { message: "Please enter an content task comment" }),
-  //  createdAt: z.date().optional(),
 });
 export type TaskCommentInput = TypeOf<typeof taskCommentsSchema>;
 const AddTaskComment = ({
   Id,
   handleCloseDialog,
-  handleOnSuccess,
 }: {
   Id: number;
   handleCloseDialog: () => void;
-  handleOnSuccess: () => void;
 }) => {
-  const { createTaskComments } = useTaskCommentsStore();
+  const createTaskCommentMutation = useCreateTaskComment();
   const user = useStore();
-  const store = useStore();
   const methods = useForm<TaskCommentInput>({
     resolver: zodResolver(taskCommentsSchema),
   });
-  const mutation = useMutation({
-    mutationFn: createTaskComments,
-    onMutate: () => store.setRequestLoading(true),
-    onSuccess: () => {
-      store.setRequestLoading(false);
-      toast.success("Create task atachment successful");
-      handleCloseDialog();
-      handleOnSuccess();
-    },
-    onError: (error: any) => {
-      store.setRequestLoading(false);
-      console.log(error);
-      toast.error(
-        error.response?.data ||
-          "Create task attachment failed. Please try again."
-      );
-    },
-  });
+  
   const {
     reset,
     handleSubmit,
@@ -61,15 +38,19 @@ const AddTaskComment = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  const onSubmitHandler: SubmitHandler<TaskCommentInput> = (values) => {
-    console.log("taskattachment", values);
-
-    const newTask: TaskComments = {
+  const onSubmitHandler: SubmitHandler<TaskCommentInput> = async (values) => {
+    try {
+      await createTaskCommentMutation.mutateAsync({
       taskId: Id,
-      userId: user.authUser?.id || 0,
+      userId: user.authUser?.id || 0, 
       content: values.content,
-    };
-    mutation.mutate(newTask);
+      });
+      toast.success("Task comment created successfully!");
+      methods.reset();
+      handleCloseDialog();
+    } catch (error: any) {
+      toast.error(error.response?.data || "Failed to create task comment.");
+    }
   };
 
   return (

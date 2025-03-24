@@ -2,13 +2,13 @@ import { object, string, TypeOf } from "zod";
 import { useEffect } from "react";
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import InputField from "../components/InputField";
-import { LoadingButton } from "../components/LoadingButton";
+import InputField from "../../components/InputField";
+import { LoadingButton } from "../../components/LoadingButton";
 import { Link, useNavigate } from "react-router-dom";
-import useStore from "../store/auth";
-import { loginUserFn } from "../api/auth";
+import useStore from "../../store/auth";
+import { loginUserFn } from "../../api/auth";
 import { useMutation } from "@tanstack/react-query";
-import Hello from "../../src/asset/hello.png";
+import Hello from "../../asset/hello.png";
 import { toast } from "react-toastify";
 const loginSchema = object({
   email: string(),

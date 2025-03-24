@@ -5,6 +5,12 @@ export async function logoutUserFn() {
   return response.data;
 }
 export async function getAuthUser() {
-  const response = await apiClient.get(`/users/me`);
-  return response.data;
+  try {
+    const response = await apiClient.get(`/users/me`);
+    return response.data;
+  } catch (error) {
+    console.error("Error authenticated user:", error);
+    throw error; 
+  }
 }
+

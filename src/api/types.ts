@@ -39,7 +39,6 @@ export type TaskCreate = {
   categoryId: number;
   isCompleted: boolean;
   labels?: number[];
-  // createdAt: Date | string;
 };
 
 //task-comments
@@ -47,7 +46,6 @@ export type TaskComments = {
   taskId: number;
   userId: number;
   content: string;
-  // createdAt: Date;
 };
 export type TaskCommentsStore = {
   taskComments: Array<TaskComments>;
@@ -88,7 +86,6 @@ export type TaskAttachments = {
   taskId: number;
   FileName: string;
   FileUrl: string;
-  // createdAt: Date;
 };
 export type TaskAttachmentsStore = {
   taskAttachments: Array<TaskAttachments>;
